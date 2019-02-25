@@ -33,10 +33,11 @@
 #' @return If \code{random = "yes"}, results also include p-values for the angles.
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
 #' @examples
+#'
 #'   data("DataApes")
 #'   DataApes$PCstage->PCstage
 #'   DataApes$Tstage->Tstage
-#'
+#' \donttest{
 #'   RRphylo(tree=Tstage,y=PCstage)->RR
 #' # Case 1. Without performing randomization test
 #'
@@ -64,7 +65,7 @@
 #'     evo.dir(RR,angle.dimension="phenotypes",y.type="RR",
 #'     pair.type="tips",pair=c("Sap_1","Tro_2"),random="no")
 #'
-#' \donttest{
+#'
 #' # Case 2. Performing randomization test
 #'
 #'  # Case 2.1 Computing angles between rate vectors
@@ -131,7 +132,6 @@ evo.dir<-function(RR,
     which(apply(Lsub,2,sum)==0)->cutnode
     if(length(which(names(cutnode)%in%savenode))==0) cutnode->cutnode else cutnode[-which(names(cutnode)%in%savenode)]->cutnode
     Lsub[,which(!colnames(Lsub)%in%names(cutnode))]->Lsub
-    ##Lsub[,-which(apply(Lsub,2,sum)==0)]->Lsub
     Lsub[,seq(match(getMRCA(tree,pair),colnames(Lsub)),dim(Lsub)[2])]->Lsub
     colnames(Lsub)[seq(1:(Ntip(Htree)-1))]->Htree$node.label
 
@@ -140,12 +140,10 @@ evo.dir<-function(RR,
     as.matrix(vec.len)->vec.len
 
     Lsub[match(pair[1],rownames(Lsub)),]->a
-    ##names(which(a!=0))->a
     savenode[which(savenode%in%getMommy(tree,which(tree$tip.label==pair[1])))]->node.a
     names(a[c(which(names(a)%in%node.a),unname(which(a!=0)))])->a
     a[!duplicated(a)]->a
     Lsub[match(pair[2],rownames(Lsub)),]->b
-    ##names(which(b!=0))->b
     savenode[which(savenode%in%getMommy(tree,which(tree$tip.label==pair[2])))]->node.b
     names(b[c(which(names(b)%in%node.b),unname(which(b!=0)))])->b
     b[!duplicated(b)]->b
@@ -268,7 +266,7 @@ evo.dir<-function(RR,
       paste(pair[1],pair[2],sep="/")->colnames(res)
       return(res)
     } else {
-      t(data.frame("angle path A"=angA,"vector size species A"= a.size, "angle path B"=angB,"vector size species B"= b.size,"angle between species to mrca"=ang.mrca,"angle between species"=theta.species,"MRCA"=getMRCA(tree,pair),"angle direction A"=conv.angA,"angle direction A"=conv.sizeA,"angle direction B"=conv.angB,"vec size direction B"=conv.sizeB))->res
+      t(data.frame("angle path A"=angA,"vector size species A"= a.size, "angle path B"=angB,"vector size species B"= b.size,"angle between species to mrca"=ang.mrca,"angle between species"=theta.species,"MRCA"=getMRCA(tree,pair),"angle direction A"=conv.angA,"vec size direction A"=conv.sizeA,"angle direction B"=conv.angB,"vec size direction B"=conv.sizeB))->res
       paste(pair[1],pair[2],sep="/")->colnames(res)
       return(res)
 
