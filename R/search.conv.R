@@ -1,18 +1,19 @@
 #' @title Searching for morphological convergence among species and clades
 #' @description The function scans a phylogenetic tree looking for morphological convergence between entire clades or species evolving under specific states.
 #' @usage search.conv(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
-#' min.dim=NULL,max.dim=NULL,min.dist=NULL,PGLSf=TRUE,nsim=1000,rsim=1000,
+#' min.dim=NULL,max.dim=NULL,min.dist=NULL,PGLSf=FALSE,declust=FALSE,nsim=1000,rsim=1000,
 #' clus=.5,foldername=NULL)
 #' @param RR an object produced by \code{\link{RRphylo}}. This is not indicated if convergence among states is tested.
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric or fully dichotomous. This is not indicated if convergence among clades is tested.
 #' @param y a multivariate phenotype. The object \code{y} should be either a matrix or dataframe with species names as rownames.
-#' @param nodes node pair to be tested. If unspecified, the function automatically searches for convergence among clades.
-#' @param state the state of the tips. If a single convergent state is indicated species within the state are tested. Otherwise, species belonging to different parts of the tree could be tested for convergence on each other by indicating different states. This latter case is especially meant to test for iterative evolution (i.e. the appearance of repeated morphotypes into different clades). The state for non-focal species (i.e. not belonging to any convergent group) must be indicated as "nostate".
-#' @param aceV phenotypic values at internal nodes. The object \code{aceV} should be either a matrix or dataframe with nodes as rownames. If \code{aceV} are not indicated, ancestral phenotypes are estimated via \code{RRphylo}.
-#' @param min.dim the minimum size of the clades to be compared. When \code{nodes} is indicated, it indicates the minimum size of the smallest clades in \code{nodes}, otherwise it is set at one tenth of the tree size.
+#' @param nodes node pair to be tested. If unspecified, the function automatically searches for convergence among clades. Notice the node number must refer to the dichotomic version of the original tree, as produced by \code{RRphylo}.
+#' @param state the named vector of tip states. The function tests for convergence within a single state or among different states (this latter case is especially meant to test for iterative evolution as for example the appearance of repeated morphotypes into different clades). In both cases, the state for non-focal species (i.e. not belonging to any convergent group) must be indicated as "nostate".
+#' @param aceV phenotypic values at internal nodes. The object \code{aceV} should be either a matrix or dataframe with nodes (referred to the dichotomic version of the original tree, as produced by \code{RRphylo}) as rownames. If \code{aceV} are not indicated, ancestral phenotypes are estimated via \code{RRphylo}.
+#' @param min.dim the minimum size of the clades to be compared. When \code{nodes} is indicated, it is the minimum size of the smallest clades in \code{nodes}, otherwise it is set at one tenth of the tree size.
 #' @param max.dim the maximum size of the clades to be compared. When \code{nodes} is indicated, it is \code{min.dim}*2 if the largest clade in \code{nodes} is smaller than this value, otherwise it corresponds to the size of the largest clade. Whitout \code{nodes} it is set at one third of the tree size.
-#' @param min.dist the minimum distance, in terms of number of nodes, between the clades to be compared. When \code{nodes} is indicated, it indicates the minimum distance between the pair, otherwise it is set at 10 nodes.
-#' @param PGLSf if the argument is set to \code{TRUE} (default), the function tests whether states have phylogenetic structure, by running a runs test. If the states are phylogenetically structured, a \code{\link{PGLS_fossil}} is performed using states as the predictor variables. PGLS residuals will be used to test for convergence.
+#' @param min.dist the minimum distance between the clades to be compared. When \code{nodes} is indicated, it is the distance between the pair. Under the automatic mode, the user can choose whether time distance or node distance (i.e. the number of nodes intervening between the pair) should be used. If time distance has to be considered, \code{min.dist} should be a character argument containing the word "time" and then the actual time distance to be used. The same is true for node distance, but the word "node" must preceed the node distance to be used. For example, if the user want to test only clades more distant than 10 time units, the argument should be "time10". If clades separated by more than 8 nodes has to be tested, the argument \code{min.dist} should be "node8". If left unspecified, it automatically searches for convergence between clades separated by a number of nodes bigger than one tenth of the tree size.
+#' @param PGLSf has been deprecated; please see the argument \code{declust} instead.
+#' @param declust if species under a given state (or a pair of states) to be tested for convergence are phylogenetically closer than expected by chance, trait similarity might depend on proximity rather than true convergence. In this case, by setting \code{declust = TRUE}, tips under the focal state (or states) are removed randomly until clustering disappears. A minimum of 3 species per state is enforced to remain anyway.
 #' @param nsim number of simulations to perform sampling within the theta random distribution. It is set at 1000 by default.
 #' @param rsim number of simulations to be performed to produce the random distribution of theta values. It is set at 1000 by default.
 #' @param clus the proportion of clusters to be used in parallel computing.
@@ -25,6 +26,8 @@
 #' @importFrom graphics axis layout lines segments
 #' @importFrom stats TukeyHSD aov princomp
 #' @importFrom plotrix polar.plot
+#' @importFrom geomorph procD.pgls geomorph.data.frame
+#' @importFrom ape vcv cophenetic.phylo
 #' @return If convergence between clades is tested, the function returns a list including:
 #' @return \itemize{\item\strong{$node pairs}: a dataframe containing for each pair of nodes:
 #' \itemize{\item ang.bydist.tip: the mean theta angle between clades divided by the time distance.
@@ -47,30 +50,36 @@
 #' \item p.ang.state: the p-value computed for ang.state.
 #' \item p.ang.state.time: the p-value computed for ang.state.time.
 #' }
-#' @details Regardless the case (either ‘state’ or ‘clade’), the function stores a plot into the folder specified by \code{foldername}. If convergence among clades is tested, the clade pair plotted corresponds to those clades with the smallest \code{$average distance from group centroid}. The figure shows the Euclidean distances computed between the MRCAs of the clades and the mean Euclidean distance computed between all the tips belonging to the converging clades, as compared to the distribution of these same figures across the rest of the tree. Furthermore, the function stores the PC1/PC2 plot obtained by PCA of the species phenotypes. Convergent clades are indicated by colored convex hulls. Large colored dots represent the mean phenotypes per clade (i.e. their group centroids). Eventually, a modified traitgram plot is produced, highlighting the branches of the clades found to converge. In both PCA and traitgram, asterisks represent the ancestral phenotypes of the individual clades. If convergence among states is tested, the function produces a PC plot with colored convex hulls enclosing species belonging to different states. Furthermore, it generates circular plots of the mean angle between states (blue lines) and the range of random angles (gray shaded area). The p- value for the convergence test is printed within the circular plots.
-#' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto, Paolo Piras, Davide Tamagnini
+#' @details Regardless the case (either 'state' or 'clade'), the function stores a plot into the folder specified by \code{foldername}. If convergence among clades is tested, the clade pair plotted corresponds to those clades with the smallest \code{$average distance from group centroid}. The figure shows the Euclidean distances computed between the MRCAs of the clades and the mean Euclidean distance computed between all the tips belonging to the converging clades, as compared to the distribution of these same figures across the rest of the tree. Furthermore, the function stores the PC1/PC2 plot obtained by PCA of the species phenotypes. Convergent clades are indicated by colored convex hulls. Large colored dots represent the mean phenotypes per clade (i.e. their group centroids). Eventually, a modified traitgram plot is produced, highlighting the branches of the clades found to converge. In both PCA and traitgram, asterisks represent the ancestral phenotypes of the individual clades. If convergence among states is tested, the function produces a PC plot with colored convex hulls enclosing species belonging to different states. Furthermore, it generates circular plots of the mean angle between states (blue lines) and the range of random angles (gray shaded area). The p-value for the convergence test is printed within the circular plots.
+#' @author Silvia Castiglione, Carmela Serio, Pasquale Raia, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto, Paolo Piras, Davide Tamagnini
+#' @references Castiglione, S., Serio, C., Tamagnini, D., Melchionna, M., Mondanaro, A., Di Febbraro, M., Profico, A., Piras, P.,Barattolo, F., & Raia, P. (2019). A new, fast method to search for morphological convergence with shape data. \emph{PLoS ONE}, 14, e0226949. https://doi.org/10.1371/journal.pone.0226949
 #' @examples
-#'   data("DataUng")
-#'   DataUng$PCscoresung->PCscoresung
-#'   DataUng$treeung->treeung
-#'   DataUng$stateung->stateung
+#' \donttest{
+#' data("DataFelids")
+#' DataFelids$PCscoresfel->PCscoresfel
+#' DataFelids$treefel->treefel
+#' DataFelids$statefel->statefel
 #'
-#'   data("DataFelids")
-#'   DataFelids$PCscoresfel->PCscoresfel
-#'   DataFelids$treefel->treefel
+#' RRphylo(treefel,PCscoresfel)->RRfel
 #'
-#'   \donttest{
-#'   search.conv(tree=treeung, y=PCscoresung, state=stateung, foldername = tempdir())
 #'
-#'   RRphylo(treefel,PCscoresfel)->RRfel
-#'   search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, foldername = tempdir())
+#' ## Case 1. searching convergence between clades
+#' # by setting min.dist as node distance
+#' search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9", foldername = tempdir())
+#'
+#' # by setting min.dist as time distance
+#' search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="time38", foldername = tempdir())
+#'
+#' ## Case 2. searching convergence within a single state
+#' search.conv(tree=treefel, y=PCscoresfel, state=statefel,declust=TRUE, foldername = tempdir())
+#'
 #'   }
 
-
 search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
-                      min.dim=NULL,max.dim=NULL,min.dist=NULL,PGLSf=TRUE,
-                      nsim=1000,rsim=1000,clus=.5,foldername=NULL)
+                      min.dim=NULL,max.dim=NULL,min.dist=NULL,PGLSf=FALSE,
+                      declust=FALSE,nsim=1000,rsim=1000,clus=.5,foldername=NULL)
 {
+
   # require(ape)
   # require(geiger)
   # require(phytools)
@@ -83,7 +92,13 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
   # require(plotrix)
   # require(RColorBrewer)
   # require(tseries)
+  # require(geomorph)
 
+  if(!missing(PGLSf)){
+    warning("argument PGLSf is deprecated; please use declust instead.",
+            call. = FALSE)
+    PGLSf->declust
+  }
 
   traitgram = function(
     x, phy,
@@ -178,14 +193,12 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     return(data.frame(a1,x1))
   }
 
-
   Plot_ConvexHull<-function(xcoord, ycoord, lcolor,lwd=NULL, lty=NULL,col.p=NULL){
     hpts <- chull(x = xcoord, y = ycoord)
     hpts <- c(hpts, hpts[1])
     lines(xcoord[hpts], ycoord[hpts], col = lcolor,lwd=lwd, lty=lty)
     polygon(xcoord[hpts], ycoord[hpts], col=col.p, border=NA)
   }
-
 
   unitV <- function(x) {
     sum(x^2)^0.5
@@ -195,6 +208,47 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
   }
   rad2deg <- function(rad) {
     (rad * 180)/(pi)
+  }
+  phylo.run.test<-function(tree,state,st,nsim=100){
+    cophenetic.phylo(tree)->cop
+    cop[which(state==st),which(state==st)]->subcop
+    mean(subcop[upper.tri(subcop)])->mds
+    dim(subcop)[1]->sl
+
+    r.mds<-array()
+    for(e in 1:nsim){
+      sample(tree$tip.label,sl)->test.tip
+      cop[test.tip,test.tip]->r.cop
+      mean(r.cop[upper.tri(r.cop)])->r.mds[e]
+    }
+    return(list(p=length(which(r.mds<mds))/nsim))
+  }
+  declusterize<-function(tree,state,st){
+    remT<-c()
+    length(which(state==st))->lenst
+    while(phylo.run.test(tree=tree,state=state,st=st)$p<0.05){
+
+      names(state)->nam
+      as.numeric(as.factor(state))->rt
+      #as.numeric(rt)->rt
+      #names(rt)<-nam
+      data.frame(state,rt)->def
+      unique(def[which(def[,1]==st),2])->stN
+      data.frame(V=rle(rt)$values,L=rle(rt)$lengths)->VL
+      data.frame(VL,pos=cumsum(VL[,2]))->VL
+      #subset(VL,V==stN)->vel
+      VL[which(VL$V==stN),]->vel
+      vel[which.max(vel$L),]->hit
+      tree$tip.label[(hit[,3]-hit[,2]+1):hit[,3]]->hitips
+      sample(hitips,0.5*length(hitips))
+      sample(hitips,ceiling(.5*length(hitips)))->remtips
+      drop.tip(tree,remtips)->tree
+      state[-which(names(state)%in%remtips)]->state
+      if(length(c(remtips,remT))>(lenst-3)) break else c(remtips,remT)->remT
+    }
+    if(length(remT)==0) remT<-NA
+    #return(list(tree=tree,state=state))
+    return(remT=remT)
   }
 
 
@@ -218,8 +272,22 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
     if(is.null(nodes)){
       if(is.null(min.dim)) min.dim<-Ntip(tree1)*0.1 else min.dim<-min.dim
-      if(is.null(min.dist)) min.dist<-Ntip(tree1)*0.1 else min.dist<-min.dist
+
+      if(is.null(min.dist)) {
+        min.dist<-Ntip(tree1)*0.1
+        dist.type<-"node"
+      }else{
+        if(any(grep("time",min.dist))){
+          min.dist<-as.numeric(gsub("time","",min.dist))
+          dist.type<-"time"
+        }else{
+          min.dist<-as.numeric(gsub("node","",min.dist))
+          dist.type<-"node"
+        }
+      }
+
       if(is.null(max.dim))  max.dim<-Ntip(tree1)/5 else max.dim<-max.dim
+
     }else{
       distNodes(tree1,nodes)->matDist
       if(matDist[,1]<Ntip(tree1)*0.15) print("clades are close to each other. Similarity might not represent convergence")
@@ -235,8 +303,6 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     if(is.null(nodes)){
 
       subtrees(tree1)->subT->subTN
-      unlist(lapply(subT,function(x) getMRCA(tree1,x$tip.label)))->names(subT)
-      as.numeric(names(subT))->nodo
       if(length(unlist(lapply(subT,Ntip))>max.dim)>0){
         subT[-c(which(unlist(lapply(subT,Ntip))<min.dim),which(unlist(lapply(subT,Ntip))>max.dim))]->subT
 
@@ -256,69 +322,80 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       registerDoParallel(cl)
       res <- foreach(i = 1:(length(nod)-1),
                      .packages = c("RRphylo","ape", "geiger", "phytools", "doParallel")) %dopar%
-                     {
-                       gc()
-                       nod[i]->sel1
-                       tips(tree1,sel1)->tt1
+        {
+          gc()
+          nod[i]->sel1
+          tips(tree1,sel1)->tt1
 
-                       if(length(which(nod%in%getDescendants(tree1,sel1)))>0)
-                         nod[-which(nod%in%getDescendants(tree1,sel1))]->mean.sel else
-                           nod->mean.sel
+          if(length(which(nod%in%getDescendants(tree1,sel1)))>0)
+            nod[-which(nod%in%getDescendants(tree1,sel1))]->mean.sel else
+              nod->mean.sel
 
-                       if(length(which(mean.sel%in%getMommy(tree1,sel1)))>0)
-                         mean.sel[-which(mean.sel%in%getMommy(tree1,sel1))]->mean.sel else
-                           mean.sel->mean.sel
-                       mean.sel[-which(mean.sel==sel1)]->mean.sel
+          if(length(which(mean.sel%in%getMommy(tree1,sel1)))>0)
+            mean.sel[-which(mean.sel%in%getMommy(tree1,sel1))]->mean.sel else
+              mean.sel->mean.sel
+          mean.sel[-which(mean.sel==sel1)]->mean.sel
 
-                       distNodes(tree1,sel1)[1:Nnode(tree1),1]->matDist
+          if(dist.type=="time") {
+            distNodes(tree1,sel1)[1:Nnode(tree1),]->distN
+            distN[,2]->matDist
+            distN[,1]->matN
+          }else{
+            distNodes(tree1,sel1)[1:Nnode(tree1),1]->matDist
+          }
 
-                       matDist->matNod
-                       if (length(which(mean.sel %in% names(matDist[which(matDist<min.dist)])))>0) mean.sel[-which(mean.sel %in% names(matDist[which(matDist<min.dist)]))]->mean.sel else mean.sel->mean.sel
-
-
-                       if(length(mean.sel)==0) {
-                         c(dir.diff=NULL,diff=NULL,ang=NULL)->diff.p
-                         nDD<-NULL
-                         nTT<-NULL
-                       }else{
-                         nDD<-array()
-                         nTT<-array()
-                         diff.p<-matrix(ncol=6,nrow=length(mean.sel))
-                         for(k in 1:length(mean.sel)){
-                           matDist[match(as.numeric(as.character(mean.sel[k])),names(matDist))]->nD
-                           dist.nodes(tree1)[sel1,as.numeric(mean.sel[k])]->nT
-
-                           nD->nDD[k]
-                           nT->nTT[k]
+          matDist->matNod
+          if (length(which(mean.sel %in% names(matDist[which(matDist<min.dist)])))>0) mean.sel[-which(mean.sel %in% names(matDist[which(matDist<min.dist)]))]->mean.sel else mean.sel->mean.sel
 
 
-                           tips(tree1,mean.sel[k])->TT
-                           expand.grid(tt1,TT)->ctt
-                           aa<-array()
-                           for(g in 1:dim(ctt)[1]){
-                             phen[match(c(as.character(ctt[g,1]),as.character(ctt[g,2])),rownames(phen)),]->ppTT
-                             as.matrix(ppTT)->ppTT
-                             aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,]))))
-                           }
-                           mean(aa)->ang.tip
+          if(length(mean.sel)==0) {
+            c(dir.diff=NULL,diff=NULL,ang=NULL)->diff.p
+            nDD<-NULL
+            nTT<-NULL
+          }else{
+            nDD<-array()
+            nTT<-array()
+            diff.p<-matrix(ncol=6,nrow=length(mean.sel))
+            for(k in 1:length(mean.sel)){
+
+              if(dist.type=="time"){
+                matN[match(as.numeric(as.character(mean.sel[k])),names(matN))]->nD
+                matDist[match(as.numeric(as.character(mean.sel[k])),names(matDist))]->nT
+              }else{
+                matDist[match(as.numeric(as.character(mean.sel[k])),names(matDist))]->nD
+                dist.nodes(tree1)[sel1,as.numeric(mean.sel[k])]->nT
+              }
+
+              nD->nDD[k]
+              nT->nTT[k]
+
+              tips(tree1,mean.sel[k])->TT
+              expand.grid(tt1,TT)->ctt
+              aa<-array()
+              for(g in 1:dim(ctt)[1]){
+                phen[match(c(as.character(ctt[g,1]),as.character(ctt[g,2])),rownames(phen)),]->ppTT
+                as.matrix(ppTT)->ppTT
+                aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,]))))
+              }
+              mean(aa)->ang.tip
 
 
-                           aces[which(rownames(aces)%in%c(sel1,mean.sel[k])),]->ac
-                           rad2deg(acos((ac[1,] %*% ac[2,])/(unitV(ac[1,]) *unitV(ac[2,]))))->ang.ac
+              aces[which(rownames(aces)%in%c(sel1,mean.sel[k])),]->ac
+              rad2deg(acos((ac[1,] %*% ac[2,])/(unitV(ac[1,]) *unitV(ac[2,]))))->ang.ac
 
-                           c(dir.diff=ang.tip/nT,diff=(ang.tip+ang.ac)/nT,ang=ang.ac,ang.tip=ang.tip,nD=nD,nT=nT)->diff.p[k,]
+              c(dir.diff=ang.tip/nT,diff=(ang.tip+ang.ac)/nT,ang=ang.ac,ang.tip=ang.tip,nD=nD,nT=nT)->diff.p[k,]
 
 
-                         }
-                         rownames(diff.p)<-mean.sel
-                         colnames(diff.p)<-c("ang.bydist.tip","ang.conv","ang.ace","ang.tip","nod.dist","time.dist")
+            }
+            rownames(diff.p)<-mean.sel
+            colnames(diff.p)<-c("ang.bydist.tip","ang.conv","ang.ace","ang.tip","nod.dist","time.dist")
 
-                       }
+          }
 
-                       diff.p->mean.diff
+          diff.p->mean.diff
 
-                       res[[i]]<-list(matNod,mean.diff,mean.sel,nDD,nTT)
-                     }
+          res[[i]]<-list(matNod,mean.diff,mean.sel,nDD,nTT)
+        }
 
       stopCluster(cl)
 
@@ -386,54 +463,54 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       registerDoParallel(cl)
       res.ran <- foreach(i = 1:nsim,
                          .packages = c("RRphylo","ape", "geiger", "phytools", "doParallel")) %dopar%
-                         {
-                           gc()
+        {
+          gc()
 
-                           mean.diffR<-list()
-                           for(u in 1:length(mean.diff)){
-                             names(mean.diff)[[u]]->sel1
-                             mean.sel[[u]]->msel
-                             nT.sel[[u]]->ntsel
-                             diff.pR<-list()
-                             for(j in 1:length(msel)){
-                               msel[j]->sel2
+          mean.diffR<-list()
+          for(u in 1:length(mean.diff)){
+            names(mean.diff)[[u]]->sel1
+            mean.sel[[u]]->msel
+            nT.sel[[u]]->ntsel
+            diff.pR<-list()
+            for(j in 1:length(msel)){
+              msel[j]->sel2
 
-                               as.numeric(names(L1[,which(colnames(L1)==sel1)][which(L1[,which(colnames(L1)==sel1)]!=0)]))[-1]->des
-                               ldes<-array()
-                               for(i in 1:length(des)){
-                                 length(which(des%in%getMommy(tree1,des[i])))->ldes[i]
-                               }
-                               des[which(ldes<=1)]->des1
+              as.numeric(names(L1[,which(colnames(L1)==sel1)][which(L1[,which(colnames(L1)==sel1)]!=0)]))[-1]->des
+              ldes<-array()
+              for(i in 1:length(des)){
+                length(which(des%in%getMommy(tree1,des[i])))->ldes[i]
+              }
+              des[which(ldes<=1)]->des1
 
-                               as.numeric(names(L1[,which(colnames(L1)==sel2)][which(L1[,which(colnames(L1)==sel2)]!=0)]))[-1]->des
-                               ldes<-array()
-                               for(i in 1:length(des)){
-                                 length(which(des%in%getMommy(tree1,des[i])))->ldes[i]
-                               }
-                               des[which(ldes<=1)]->des2
+              as.numeric(names(L1[,which(colnames(L1)==sel2)][which(L1[,which(colnames(L1)==sel2)]!=0)]))[-1]->des
+              ldes<-array()
+              for(i in 1:length(des)){
+                length(which(des%in%getMommy(tree1,des[i])))->ldes[i]
+              }
+              des[which(ldes<=1)]->des2
 
-                               expand.grid(c(getMommy(tree1,sel1)[1:2],des1,sel1),c(getMommy(tree1,sel2)[1:2],des2,sel2))->ee
-                               as.numeric(as.character(ee[,2]))->ee[,2]
-                               as.numeric(as.character(ee[,1]))->ee[,1]
-                               ee[,c(2,1)]->e2
-                               colnames(e2)<-colnames(ee)
-                               rbind(ee,e2)->ex
-                               apply(ex,1, function(x) paste(x[1],x[2],sep="/"))->exx
-                               as.data.frame(exx)->exx
-                               if (length(which(AD$combo%in%exx[,1]))>0) AD[-which(AD$combo%in%exx[,1]),]->ADD else AD->ADD
-                               sample(seq(1:dim(ADD)[1]),1)->s
-                               mean.aRd[s]->rdiff
-                               ADD[s,1]->mdiff
-                               data.frame(dir.diff=rdiff,diff=mdiff)->diff.pR[[j]]
+              expand.grid(c(getMommy(tree1,sel1)[1:2],des1,sel1),c(getMommy(tree1,sel2)[1:2],des2,sel2))->ee
+              as.numeric(as.character(ee[,2]))->ee[,2]
+              as.numeric(as.character(ee[,1]))->ee[,1]
+              ee[,c(2,1)]->e2
+              colnames(e2)<-colnames(ee)
+              rbind(ee,e2)->ex
+              apply(ex,1, function(x) paste(x[1],x[2],sep="/"))->exx
+              as.data.frame(exx)->exx
+              if (length(which(AD$combo%in%exx[,1]))>0) AD[-which(AD$combo%in%exx[,1]),]->ADD else AD->ADD
+              sample(seq(1:dim(ADD)[1]),1)->s
+              mean.aRd[s]->rdiff
+              ADD[s,1]->mdiff
+              data.frame(dir.diff=rdiff,diff=mdiff)->diff.pR[[j]]
 
-                             }
-                             do.call(rbind,diff.pR)->mean.diffR[[u]]
-                             rownames(mean.diffR[[u]])<-names(msel)
-                           }
-                           names(mean.diffR)<-names(mean.diff)
-                           mean.diffR->res.ran[[i]]
+            }
+            do.call(rbind,diff.pR)->mean.diffR[[u]]
+            rownames(mean.diffR[[u]])<-names(msel)
+          }
+          names(mean.diffR)<-names(mean.diff)
+          mean.diffR->res.ran[[i]]
 
-                         }
+        }
       stopCluster(cl)
 
 
@@ -598,59 +675,59 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       registerDoParallel(cl)
       res <- foreach(i = 1:length(nod),
                      .packages = c("RRphylo","ape", "geiger", "phytools", "doParallel")) %dopar%
-                     {
+        {
 
-                       gc()
-                       nod[i]->sel1
-                       tips(tree1,sel1)->tt1
+          gc()
+          nod[i]->sel1
+          tips(tree1,sel1)->tt1
 
-                       distNodes(tree1,sel1)[1:Nnode(tree1),1]->matDist
+          distNodes(tree1,sel1)[1:Nnode(tree1),1]->matDist
 
-                       matDist->matNod
+          matDist->matNod
 
-                       if(length(mean.sel)==0) {
-                         c(dir.diff=NULL,diff=NULL,ang=NULL)->diff.p
-                         nDD<-NULL
-                         nTT<-NULL
-                       }else{
-                         nDD<-array()
-                         nTT<-array()
-                         diff.p<-matrix(ncol=6,nrow=length(mean.sel))
-                         for(k in 1:length(mean.sel)){
-                           matDist[match(as.numeric(as.character(mean.sel[k])),names(matDist))]->nD
-                           dist.nodes(tree1)[sel1,as.numeric(mean.sel[k])]->nT
+          if(length(mean.sel)==0) {
+            c(dir.diff=NULL,diff=NULL,ang=NULL)->diff.p
+            nDD<-NULL
+            nTT<-NULL
+          }else{
+            nDD<-array()
+            nTT<-array()
+            diff.p<-matrix(ncol=6,nrow=length(mean.sel))
+            for(k in 1:length(mean.sel)){
+              matDist[match(as.numeric(as.character(mean.sel[k])),names(matDist))]->nD
+              dist.nodes(tree1)[sel1,as.numeric(mean.sel[k])]->nT
 
-                           nD->nDD[k]
-                           nT->nTT[k]
-
-
-                           tips(tree1,mean.sel[k])->TT
-                           expand.grid(tt1,TT)->ctt
-                           aa<-array()
-                           for(g in 1:dim(ctt)[1]){
-                             phen[match(c(as.character(ctt[g,1]),as.character(ctt[g,2])),rownames(phen)),]->ppTT
-                             as.matrix(ppTT)->ppTT
-                             aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,]))))
-                           }
-                           mean(aa)->ang.tip
+              nD->nDD[k]
+              nT->nTT[k]
 
 
-                           aces[which(rownames(aces)%in%c(sel1,mean.sel[k])),]->ac
-                           rad2deg(acos((ac[1,] %*% ac[2,])/(unitV(ac[1,]) *unitV(ac[2,]))))->ang.ac
+              tips(tree1,mean.sel[k])->TT
+              expand.grid(tt1,TT)->ctt
+              aa<-array()
+              for(g in 1:dim(ctt)[1]){
+                phen[match(c(as.character(ctt[g,1]),as.character(ctt[g,2])),rownames(phen)),]->ppTT
+                as.matrix(ppTT)->ppTT
+                aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,]))))
+              }
+              mean(aa)->ang.tip
 
-                           c(dir.diff=ang.tip/nT,diff=(ang.tip+ang.ac)/nT,ang=ang.ac,ang.tip=ang.tip,nD=nD,nT=nT)->diff.p[k,]
+
+              aces[which(rownames(aces)%in%c(sel1,mean.sel[k])),]->ac
+              rad2deg(acos((ac[1,] %*% ac[2,])/(unitV(ac[1,]) *unitV(ac[2,]))))->ang.ac
+
+              c(dir.diff=ang.tip/nT,diff=(ang.tip+ang.ac)/nT,ang=ang.ac,ang.tip=ang.tip,nD=nD,nT=nT)->diff.p[k,]
 
 
-                         }
-                         rownames(diff.p)<-mean.sel
-                         colnames(diff.p)<-c("ang.bydist.tip","ang.conv","ang.ace","ang.tip","nod.dist","time.dist")
+            }
+            rownames(diff.p)<-mean.sel
+            colnames(diff.p)<-c("ang.bydist.tip","ang.conv","ang.ace","ang.tip","nod.dist","time.dist")
 
-                       }
+          }
 
-                       diff.p->mean.diff
+          diff.p->mean.diff
 
-                       res[[i]]<-list(matNod,mean.diff,nDD,nTT)
-                     }
+          res[[i]]<-list(matNod,mean.diff,nDD,nTT)
+        }
 
       stopCluster(cl)
 
@@ -716,54 +793,54 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       registerDoParallel(cl)
       res.ran <- foreach(i = 1:nsim,
                          .packages = c("RRphylo","ape", "geiger", "phytools", "doParallel")) %dopar%
-                         {
-                           gc()
+        {
+          gc()
 
-                           mean.diffR<-list()
-                           for(u in 1:length(mean.diff)){
-                             names(mean.diff)[[u]]->sel1
-                             mean.sel->msel
-                             nT.sel[[u]]->ntsel
-                             diff.pR<-list()
-                             for(j in 1:length(msel)){
-                               msel[j]->sel2
+          mean.diffR<-list()
+          for(u in 1:length(mean.diff)){
+            names(mean.diff)[[u]]->sel1
+            mean.sel->msel
+            nT.sel[[u]]->ntsel
+            diff.pR<-list()
+            for(j in 1:length(msel)){
+              msel[j]->sel2
 
-                               as.numeric(names(L1[,which(colnames(L1)==sel1)][which(L1[,which(colnames(L1)==sel1)]!=0)]))[-1]->des
-                               ldes<-array()
-                               for(i in 1:length(des)){
-                                 length(which(des%in%getMommy(tree1,des[i])))->ldes[i]
-                               }
-                               des[which(ldes<=1)]->des1
+              as.numeric(names(L1[,which(colnames(L1)==sel1)][which(L1[,which(colnames(L1)==sel1)]!=0)]))[-1]->des
+              ldes<-array()
+              for(i in 1:length(des)){
+                length(which(des%in%getMommy(tree1,des[i])))->ldes[i]
+              }
+              des[which(ldes<=1)]->des1
 
-                               as.numeric(names(L1[,which(colnames(L1)==sel2)][which(L1[,which(colnames(L1)==sel2)]!=0)]))[-1]->des
-                               ldes<-array()
-                               for(i in 1:length(des)){
-                                 length(which(des%in%getMommy(tree1,des[i])))->ldes[i]
-                               }
-                               des[which(ldes<=1)]->des2
+              as.numeric(names(L1[,which(colnames(L1)==sel2)][which(L1[,which(colnames(L1)==sel2)]!=0)]))[-1]->des
+              ldes<-array()
+              for(i in 1:length(des)){
+                length(which(des%in%getMommy(tree1,des[i])))->ldes[i]
+              }
+              des[which(ldes<=1)]->des2
 
-                               expand.grid(c(getMommy(tree1,sel1)[1:2],des1,sel1),c(getMommy(tree1,sel2)[1:2],des2,sel2))->ee
-                               as.numeric(as.character(ee[,2]))->ee[,2]
-                               as.numeric(as.character(ee[,1]))->ee[,1]
-                               ee[,c(2,1)]->e2
-                               colnames(e2)<-colnames(ee)
-                               rbind(ee,e2)->ex
-                               apply(ex,1, function(x) paste(x[1],x[2],sep="/"))->exx
-                               as.data.frame(exx)->exx
-                               if (length(which(AD$combo%in%exx[,1]))>0) AD[-which(AD$combo%in%exx[,1]),]->ADD else AD->ADD
-                               sample(seq(1:dim(ADD)[1]),1)->s
-                               mean.aRd[s]->rdiff
-                               ADD[s,1]->mdiff
-                               data.frame(dir.diff=rdiff,diff=mdiff)->diff.pR[[j]]
+              expand.grid(c(getMommy(tree1,sel1)[1:2],des1,sel1),c(getMommy(tree1,sel2)[1:2],des2,sel2))->ee
+              as.numeric(as.character(ee[,2]))->ee[,2]
+              as.numeric(as.character(ee[,1]))->ee[,1]
+              ee[,c(2,1)]->e2
+              colnames(e2)<-colnames(ee)
+              rbind(ee,e2)->ex
+              apply(ex,1, function(x) paste(x[1],x[2],sep="/"))->exx
+              as.data.frame(exx)->exx
+              if (length(which(AD$combo%in%exx[,1]))>0) AD[-which(AD$combo%in%exx[,1]),]->ADD else AD->ADD
+              sample(seq(1:dim(ADD)[1]),1)->s
+              mean.aRd[s]->rdiff
+              ADD[s,1]->mdiff
+              data.frame(dir.diff=rdiff,diff=mdiff)->diff.pR[[j]]
 
-                             }
-                             do.call(rbind,diff.pR)->mean.diffR[[u]]
-                             rownames(mean.diffR[[u]])<-names(msel)
-                           }
-                           names(mean.diffR)<-names(mean.diff)
-                           mean.diffR->res.ran[[i]]
+            }
+            do.call(rbind,diff.pR)->mean.diffR[[u]]
+            rownames(mean.diffR[[u]])<-names(msel)
+          }
+          names(mean.diffR)<-names(mean.diff)
+          mean.diffR->res.ran[[i]]
 
-                         }
+        }
       stopCluster(cl)
 
 
@@ -951,7 +1028,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     abline(v=dist.Ynn,col=rgb(255/255,213/255,0/255,1),lwd=3)
 
     par(mar = c(3, 2.5, 2, 1))
-    plot(bb[-match(nn, rownames(bb)),1:2], ylab="PC2",xlab="PC1",cex=1.5,mgp=c(1.5,0.5,0),font.lab=2,pch=21,col="black",bg="gray")
+    plot(bb[-match(nn, rownames(bb)),1:2], ylab="PC2",xlab="PC1",cex=1.5,mgp=c(1.5,0.5,0),font.lab=2,pch=21,col="black",bg="gray",asp=1)
     Plot_ConvexHull(xcoord = a1[,1], ycoord = a1[,2], lcolor = "#E7298A",lwd=3,lty=2, col.p = rgb(212/255,185/255,218/255,0.5))
     Plot_ConvexHull(xcoord = a2[,1], ycoord = a2[,2], lcolor = "#91003F",lwd=3,lty=2, col.p = rgb(212/255,185/255,218/255,0.5))
     points(pam(a1, 1)$medoids,xlim=range(bb[,1]),ylim=range(bb[,2]),bg="#E7298A",type = "p",pch=21,col="black", cex=2.5)
@@ -971,22 +1048,45 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     tree->tree1
     if (class(y) == "data.frame")
       y <- treedata(tree1, y, sort = TRUE)[[2]]
-    state[match(rownames(y),names(state))]->state
-    if(sort(table(state[-which(state=="nostate")]),decreasing = TRUE)[1]>Ntip(tree1)*0.5) warning("one or more states apply to a large portion of the tree, this might be inappropriate for testing convergence")
 
-    if(length(unique(state[-which(state=="nostate")]))<2){
-      unique(state[-which(state=="nostate")])->onestate
-      if(PGLSf){
-        rep("B",length(state))->f
-        f[which(state==onestate)]<-"A"
-        runs.test(as.factor(f))$p->ranp
-      }else{
-        ranp<-1
+    state[match(rownames(y),names(state))]->state
+    if("nostate"%in%state) state[-which(state=="nostate")]->state.real else state->state.real
+    if(sort(table(state.real),decreasing = TRUE)[1]>Ntip(tree1)*0.5) warning("one or more states apply to a large portion of the tree, this might be inappropriate for testing convergence")
+
+    if(("nostate"%in%state)&length(unique(state.real))<2){
+      y->yOri
+      state->stateOri
+
+      unique(state.real)->onestate
+
+      if(isFALSE(declust)&(length(which(state==onestate))>3))
+        if(phylo.run.test(tree1,state,onestate)$p<=0.05) print(paste("species within state",onestate,"are phylogenetically clustered; consider running search.conv with declust=TRUE"))
+
+      if(declust&(length(which(state==onestate))>3)){
+        declusterize(tree1,state,onestate)->decl
+        decl->remtips
+        if(!any(is.na(remtips)>0)){
+          y[-match(remtips,rownames(y)),]->y
+          state[-match(remtips,names(state))]->state
+          #drop.tip(tree1,remtips)->tree1
+        }
       }
 
+      # if(PGLS){
+      #   rep("B",length(state))->f
+      #   f[which(state==onestate)]<-"A"
+      #   runs.test(as.factor(f))$p->ranp
+      # }else{
+      #   ranp<-1
+      # }
 
-      ape::cophenetic.phylo(tree1)->cop
-      if(ranp<=0.05) suppressWarnings(residuals(PGLS_fossil(tree1,state,y))->y)
+
+      cophenetic.phylo(tree1)->cop
+      # if(ranp<=0.05) {
+      #   cova = vcv(tree1)
+      #   geomorph.data.frame(y.gdf=y,state.gdf=state)->gdf
+      #   quiet(residuals(procD.pgls(y.gdf~state.gdf,data=gdf, Cov = cova))->y)
+      # }
       mean(apply(y[which(state==onestate),],1,unitV))->vs1->vs2
       t(combn(names(state[which(state==onestate)]),2))->ctt
       aa<-array()
@@ -1003,20 +1103,20 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       cl <- makeCluster(round((detectCores() * clus), 0))
       registerDoParallel(cl)
       ang.by.stateR<- foreach(j = 1:nsim,.combine = 'rbind') %dopar%
-      {
-        gc()
-        sample(state,length(which(state==onestate)))->sam
-        t(combn(names(sam),2))->ctt
-        aa<-array()
-        dt<-array()
-        for(g in 1:dim(ctt)[1]){
-          y[match(c(as.character(ctt[g,1]),as.character(ctt[g,2])),rownames(y)),]->ppTT
-          as.matrix(ppTT)->ppTT
-          aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,]))))
-          cop[match(as.character(ctt[g,1]),rownames(cop)),match(as.character(ctt[g,2]),rownames(cop))]->dt[g]
+        {
+          gc()
+          sample(state,length(which(state==onestate)))->sam
+          t(combn(names(sam),2))->ctt
+          aa<-array()
+          dt<-array()
+          for(g in 1:dim(ctt)[1]){
+            y[match(c(as.character(ctt[g,1]),as.character(ctt[g,2])),rownames(y)),]->ppTT
+            as.matrix(ppTT)->ppTT
+            aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,]))))
+            cop[match(as.character(ctt[g,1]),rownames(cop)),match(as.character(ctt[g,2]),rownames(cop))]->dt[g]
+          }
+          c(mean(aa),mean(aa/dt))->ang.by.stateR
         }
-        c(mean(aa),mean(aa/dt))->ang.by.stateR
-      }
       stopCluster(cl)
 
 
@@ -1025,9 +1125,11 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
       c(ang.state=ang.by.state[1],ang.state.time=ang.by.state[2],ang.by.state[c(3,4)],p.ang.state=pval[1],p.ang.state.time=pval[2])->res.tot
 
-      if(res.tot[4]<=0.05) print(paste("species within group", onestate, "converge"))
+      if(res.tot[6]<=0.05) print(paste("species within group", onestate, "converge"))
 
       #### Plot preparation ####
+      yOri->y
+      stateOri->state
       c(res.tot[1],rlim=rlim[1],res.tot[3:4])->bbb
       c(bbb,l1=bbb[1]/2,l2=360-(bbb[1]/2),rlim1=bbb[2]/2,
         rlim2=360-bbb[2]/2,p=res.tot[6])->ccc
@@ -1042,13 +1144,14 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
       layout(mat,heights = ht)
 
-      names(sort(table(state),decreasing = TRUE))->statetoplot
+      c("nostate",names(sort(table(state.real), decreasing = TRUE)))->statetoplot
       princomp(y)->compy
       compy$scores[,1:2]->sco
+      #y[,1:2]->sco
       sco[match(names(state),rownames(sco)),]->sco
       brewer.pal(3,"Set2")[1]->cols
       par(mar=c(2.5,2.5,1,1))
-      plot(sco, ylab="PC2",xlab="PC1",cex=1.5,mgp=c(1.5,0.5,0),font.lab=2,xlim=c(range(sco[,1])[1]*1.1,range(sco[,1])[2]),col="white")
+      plot(sco, ylab="PC2",xlab="PC1",cex=1.5,mgp=c(1.5,0.5,0),font.lab=2,xlim=c(range(sco[,1])[1]*1.1,range(sco[,1])[2]),col="white",asp=1)
       for(h in 1:length(statetoplot)){
         if(h==1){
           points(sco[which(state==statetoplot[h]),],pch=21,bg="gray",cex=1.5)
@@ -1083,27 +1186,93 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
     }else{
 
-      combn(unique(state),2)->stcomb
-      combn(unique(state)[-which(unique(state)=="nostate")],2)->stcomb1
+      combn(unique(state.real),2)->stcomb1
+      if("nostate"%in%state) combn(unique(state),2)->stcomb else stcomb1->stcomb
 
-      if(PGLSf){
-        ranp<-array()
-        for(k in 1:ncol(stcomb1)){
-          f<-array()
-          for(i in 1:length(state)) {
-            if(state[i]%in%stcomb1[,k]) f[i]<-"A" else f[i]<-"B"
-          }
-          runs.test(as.factor(f))$p->ranp[k]
+      state2decl<-list()
+      for(k in 1:ncol(stcomb1)){
+        if(any(table(state[which(state%in%stcomb1[,k])])<4)) state2decl[[k]]<-NA else{
+          replace(state,which(state%in%stcomb1[,k]),"A")->f
+          replace(f,which(!state%in%stcomb1[,k]),"B")->f
+          #         f<-array()
+          # for(i in 1:length(state)) {
+          #   if(state[i]%in%stcomb1[,k]) f[i]<-"A" else f[i]<-"B"
+          # }
+          # names(f)<-names(state)
+          state2decl[[k]]<-f
         }
-      }else{
-        ranp<-rep(1,ncol(stcomb1))
       }
 
+      # if(declust){
+      #   decl<-list()
+      #   for(j in unique(state.real)){
+      #     if(length(which(state==j))<4) next else declusterize(tree1,state,j)->decl[[j]]
+      #   }
+      # unlist(decl)->remtips
+      # if(length(remtips)>0){
+      #   y[-match(remtips,rownames(y)),]->y
+      #   state[-match(remtips,names(state))]->state
+      #   drop.tip(tree1,remtips)->tree1
+      # }
+      # }
 
-      ape::cophenetic.phylo(tree1)->cop
+
+      if(declust){
+        if(ncol(stcomb1)==1&("nostate"%in%state)==FALSE)
+          decl<-as.list(rep(NA,ncol(stcomb1))) else {
+            decl<-list()
+            for(k in 1:ncol(stcomb1)){
+              if(any(!is.na(state2decl[[k]]))){
+                # f<-array()
+                # for(i in 1:length(state)) {
+                #   if(state[i]%in%stcomb1[,k]) f[i]<-"A" else f[i]<-"B"
+                # }
+                # names(f)<-names(state)
+                #runs.test(as.factor(f))$p->ranp[k]
+                setTimeLimit(elapsed=60,transient=TRUE)
+                try(repeat({
+                  declusterize(tree1,state2decl[[k]],"A")->dec
+                  if(!any(is.na(dec))){
+                    if(all(table(state[-which(names(state)%in%dec)])>3)&
+                       length(table(state))==length(table(state[-which(names(state)%in%dec)]))) break
+                  }else break
+                }),silent=TRUE)->rep.try
+                if(class(rep.try)=="try-error") decl[[k]]<-NA else decl[[k]]<-dec
+                setTimeLimit(elapsed=Inf)
+              }else decl[[k]]<-NA
+            }
+            #declusterize(tree1,f,"A")->decl[[k]]
+
+          }
+      }else{
+        #ranp<-rep(1,ncol(stcomb1))
+        sapply(state2decl,function(x){
+          if(!any(is.na(x))) phylo.run.test(tree1,x,"A")$p->ret else 1->ret
+          return(ret)
+        })->prt
+        if(any(prt<=0.05))
+          for(q in which(prt<=0.05) ) print(paste("species in state",
+                                                  stcomb1[1,q],"and",
+                                                  stcomb1[2,q],
+                                                  "are phylogenetically clustered; consider running search.conv with declust=TRUE"))
+        decl<-as.list(rep(NA,ncol(stcomb1)))
+      }
+
+      y->yOri
+      state->stateOri
+
+      cophenetic.phylo(tree1)->cop
       ang.by.state<-matrix(ncol=4,nrow=ncol(stcomb1))
+      y.stcomb<-state.stcomb<-list()
       for(i in 1:ncol(stcomb1)){
-        if(ranp[i]<=0.05) suppressWarnings(residuals(PGLS_fossil(tree1,state,y))->y)
+        if(!any(is.na(decl[[i]]))){
+          yOri[-match(decl[[i]],rownames(yOri)),]->y->y.stcomb[[i]]
+          stateOri[-match(decl[[i]],names(stateOri))]->state->state.stcomb[[i]]
+        }else{
+          yOri->y->y.stcomb[[i]]
+          stateOri->state->state.stcomb[[i]]
+        }
+
         y[which(state==stcomb1[1,i]),]->tt1
         mean(apply(tt1,1,unitV))->vs1
         y[which(state==stcomb1[2,i]),]->TT
@@ -1120,30 +1289,33 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
         c(mean(aa),mean(aa/dt),vs1,vs2)->ang.by.state[i,]
       }
       data.frame(state1=t(stcomb1)[,1],state2=t(stcomb1)[,2],ang.state=ang.by.state[,1],ang.state.time=ang.by.state[,2],size.v1=ang.by.state[,3],size.v2=ang.by.state[,4])->ang2state
+
       ang2stateR <- list()
       cl <- makeCluster(round((detectCores() * clus), 0))
       registerDoParallel(cl)
       ang2stateR <- foreach(j = 1:nsim) %dopar%
-      {
-        gc()
-        ang.by.stateR<-matrix(ncol=2,nrow=ncol(stcomb))
-        for(i in 1:ncol(stcomb)){
-          sample(state)->state
-          y[which(state==stcomb[1,i]),]->tt1
-          y[which(state==stcomb[2,i]),]->TT
-          expand.grid(rownames(tt1),rownames(TT))->ctt
-          aa<-array()
-          dt<-array()
-          for(g in 1:dim(ctt)[1]){
-            y[match(c(as.character(ctt[g,1]),as.character(ctt[g,2])),rownames(y)),]->ppTT
-            as.matrix(ppTT)->ppTT
-            aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,]))))
-            cop[match(as.character(ctt[g,1]),rownames(cop)),match(as.character(ctt[g,2]),rownames(cop))]->dt[g]
+        {
+          gc()
+          ang.by.stateR<-matrix(ncol=2,nrow=ncol(stcomb1))
+          for(i in 1:ncol(stcomb1)){
+            y.stcomb[[i]]->y
+            state.stcomb[[i]]->state
+            sample(state)->state
+            y[which(state==stcomb1[1,i]),]->tt1
+            y[which(state==stcomb1[2,i]),]->TT
+            expand.grid(rownames(tt1),rownames(TT))->ctt
+            aa<-array()
+            dt<-array()
+            for(g in 1:dim(ctt)[1]){
+              y[match(c(as.character(ctt[g,1]),as.character(ctt[g,2])),rownames(y)),]->ppTT
+              as.matrix(ppTT)->ppTT
+              aa[g] <- rad2deg(acos((ppTT[1,]%*%ppTT[2,])/(unitV(ppTT[1,]) *unitV(ppTT[2,]))))
+              cop[match(as.character(ctt[g,1]),rownames(cop)),match(as.character(ctt[g,2]),rownames(cop))]->dt[g]
+            }
+            c(mean(aa),mean(aa/dt))->ang.by.stateR[i,]
           }
-          c(mean(aa),mean(aa/dt))->ang.by.stateR[i,]
+          data.frame(state1=t(stcomb1)[,1],state2=t(stcomb1)[,2],ang.state=ang.by.stateR[,1],ang.state.time=ang.by.stateR[,2])->ang2stateR[[j]]
         }
-        data.frame(state1=t(stcomb)[,1],state2=t(stcomb)[,2],ang.state=ang.by.stateR[,1],ang.state.time=ang.by.stateR[,2])->ang2stateR[[j]]
-      }
       stopCluster(cl)
       pval<-matrix(ncol=2,nrow=nrow(ang2state))
       rlim<-matrix(ncol=2,nrow=nrow(ang2state))
@@ -1158,6 +1330,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       }
 
       #### Plot preparation ####
+      yOri->y
+      stateOri->state
       data.frame(res.tot[,3],rlim=rlim[,1]*res.tot[,4]/res.tot[1,4],res.tot[,5:6])->bbb
       data.frame(bbb,l1=bbb[,1]/2,l2=360-(bbb[,1]/2),rlim1=bbb[,2]/2,
                  rlim2=360-bbb[,2]/2,p=res.tot[,8])->ccc
@@ -1178,24 +1352,36 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       }
       layout(mat,heights = ht)
 
-      names(sort(table(state),decreasing = TRUE))->statetoplot
+      if("nostate"%in%state) c("nostate",names(sort(table(state.real), decreasing = TRUE)))->statetoplot else names(sort(table(state.real), decreasing = TRUE))->statetoplot
+
       princomp(y)->compy
       compy$scores[,1:2]->sco
+      #y[,1:2]->sco
       sco[match(names(state),rownames(sco)),]->sco
       brewer.pal(length(unique(state)),"Set2")->cols
       par(mar=c(2.5,2.5,1,1))
-      plot(sco, ylab="PC2",xlab="PC1",cex=1.5,mgp=c(1.5,0.5,0),font.lab=2,xlim=c(range(sco[,1])[1]*1.1,range(sco[,1])[2]),col="white")
+      plot(sco, ylab="PC2",xlab="PC1",cex=1.5,mgp=c(1.5,0.5,0),font.lab=2,xlim=c(range(sco[,1])[1]*1.1,range(sco[,1])[2]),col="white",asp=1)
       for(h in 1:length(statetoplot)){
-        if(h==1){
-          points(sco[which(state==statetoplot[h]),],pch=21,bg="gray",cex=1.5)
-          Plot_ConvexHull(xcoord=sco[which(state==statetoplot[h]),1], ycoord=sco[which(state==statetoplot[h]),2], lcolor = "#bebebe",lwd=3,lty=2, col.p = paste("#bebebe","4D",sep=""))
+        if("nostate"%in%statetoplot){
+          if(h==1){
+            points(sco[which(state==statetoplot[h]),],pch=21,bg="gray",cex=1.5)
+            Plot_ConvexHull(xcoord=sco[which(state==statetoplot[h]),1], ycoord=sco[which(state==statetoplot[h]),2], lcolor = "#bebebe",lwd=3,lty=2, col.p = paste("#bebebe","4D",sep=""))
+          }else{
+            points(sco[which(state==statetoplot[h]),],pch=21,bg=cols[h-1],cex=1.5)
+            Plot_ConvexHull(xcoord=sco[which(state==statetoplot[h]),1], ycoord=sco[which(state==statetoplot[h]),2], lcolor = cols[h-1],lwd=3,lty=2, col.p = paste(cols[h-1],"4D",sep=""))
+          }
         }else{
-          points(sco[which(state==statetoplot[h]),],pch=21,bg=cols[h-1],cex=1.5)
-          Plot_ConvexHull(xcoord=sco[which(state==statetoplot[h]),1], ycoord=sco[which(state==statetoplot[h]),2], lcolor = cols[h-1],lwd=3,lty=2, col.p = paste(cols[h-1],"4D",sep=""))
+          points(sco[which(state==statetoplot[h]),],pch=21,bg=cols[h],cex=1.5)
+          Plot_ConvexHull(xcoord=sco[which(state==statetoplot[h]),1], ycoord=sco[which(state==statetoplot[h]),2], lcolor = cols[h],lwd=3,lty=2, col.p = paste(cols[h],"4D",sep=""))
         }
       }
-      legend(min(sco[,1])*1.1,max(sco[,2])*1.1, legend = statetoplot,fill = c("#bebebe",cols), bg = rgb(0, 0, 0, 0),
-             box.col = rgb(0,0, 0, 0), border = NA, x.intersp = 0.25,y.intersp=0.8)
+      if("nostate"%in%statetoplot){
+        legend(min(sco[,1])*1.1,max(sco[,2])*1.1, legend = statetoplot,fill = c("#bebebe",cols), bg = rgb(0, 0, 0, 0),
+               box.col = rgb(0,0, 0, 0), border = NA, x.intersp = 0.25,y.intersp=0.8)
+      }else{
+        legend(min(sco[,1])*1.1,max(sco[,2])*1.1, legend = statetoplot,fill = cols, bg = rgb(0, 0, 0, 0),
+               box.col = rgb(0,0, 0, 0), border = NA, x.intersp = 0.25,y.intersp=0.8)
+      }
 
       if(nrow(res.tot)>6) {
         lp<-seq(0,340,40)
@@ -1222,5 +1408,3 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
   }
   return(res.tot)
 }
-
-

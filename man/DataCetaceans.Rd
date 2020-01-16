@@ -7,14 +7,18 @@
 \format{A list containing:
 \describe{
 \item{\strong{treecet}}{Cetaceans phylogenetic tree}.
-\item{\strong{masscet}}{numeric vector of cetaceans body masses (ln kg)}.
-\item{\strong{aceMyst}}{body mass (ln kg) for \emph{Mystacodon selenensis}, used as node prior at the ancestor of the Mysticeti}.
+\item{\strong{masscet}}{numeric vector of cetaceans body masses (ln g)}.
+\item{\strong{brainmasscet}}{numeric vector of cetaceans brain masses (ln g)}.
+\item{\strong{aceMyst}}{body mass (ln g) for \emph{Mystacodon selenensis}, used as node prior at the ancestor of the Mysticeti}.
 }}
 \usage{
 data(DataCetaceans)
 }
 \description{
-Cetaceans' body mass and phylogenetic tree.
+Cetaceans' body and brain mass, and phylogenetic tree (Serio et al. 2019).
+}
+\references{
+Serio, C., Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Di Febbraro, M., & Raia, P. (2019). Macroevolution of Toothed Whales Exceptional Relative Brain Size. \emph{Evolutionary Biology}, 46: 332-342. doi:10.1007/s11692-019-09485-7
 }
 \author{
 Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
