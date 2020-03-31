@@ -30,11 +30,6 @@
 #' @references
 #' Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P.(2018). A new method for testing evolutionary rate variation and shifts in phenotypic evolution. \emph{Methods in Ecology and Evolution}, 9: 974-983.doi:10.1111/2041-210X.12954
 #' @examples
-#' data("DataOrnithodirans")
-#' DataOrnithodirans$treedino->treedino
-#' DataOrnithodirans$massdino->massdino
-#' DataOrnithodirans$statedino->statedino
-#'
 #' \donttest{
 #' data("DataOrnithodirans")
 #' DataOrnithodirans$treedino->treedino
@@ -81,6 +76,7 @@ search.shift<-function(RR,
   # require(phytools)
   # require(geiger)
   # require(scales)
+
   tree <- RR$tree
   rates <- RR$rates
   betas<-RR$multiple.rates
@@ -180,17 +176,18 @@ search.shift<-function(RR,
 
       if (length(p.single[p.single >= 0.975 | p.single <=
                           0.025])==0){
-        p.single <- p.single[c(which.max(p.single), which.min(p.single))]
-        leaf2N.diff <- leaf2N.diff[match(names(p.single),
-                                         names(leaf2N.diff))]
         p.init <- p.single
         l2N.init <- leaf2N.diff[match(names(p.init),
                                       names(leaf2N.diff))]
+
+        p.single <- p.single[c(which.max(p.single), which.min(p.single))]
+        leaf2N.diff <- leaf2N.diff[match(names(p.single),
+                                         names(leaf2N.diff))]
       }
 
 
       if (length(p.single[p.single >= 0.975 | p.single <=
-                          0.025]) < 2) {
+                          0.025])==1) {
         p.init <- p.single
         l2N.init <- leaf2N.diff[match(names(p.init),
                                       names(leaf2N.diff))]
@@ -203,7 +200,7 @@ search.shift<-function(RR,
       }
 
       if (length(p.single[p.single >= 0.975 | p.single <=
-                          0.025]) > 2)  {
+                          0.025]) >= 2)  {
         p.init <- p.single
         l2N.init <- leaf2N.diff[match(names(p.init),
                                       names(leaf2N.diff))]
@@ -344,7 +341,7 @@ search.shift<-function(RR,
         hist(ran.diffR, main="",cex.lab=1.5,
              yaxt="n",xaxt="n",ylab=paste("node", node, sep = " "),xlab="",mgp=c(0.2,0,0),
              xlim = c(1.1 * min(c(leaf2NC.diff,ran.diffR)),1.1 * max(c(leaf2NC.diff,ran.diffR))))
-        hist(c(leaf2NC.diff,ran.diffR),plot=F)->hi
+        hist(c(leaf2NC.diff,ran.diffR),plot=FALSE)->hi
         if(length(hi$breaks)%%2==1) (hi$breaks[seq(1,length(hi$breaks),2)])->athi else
           c(hi$breaks[seq(1,length(hi$breaks),2)],
             (hi$breaks[length(hi$breaks)]+abs(diff(hi$breaks[seq(1,length(hi$breaks),2)][1:2]))))->athi
@@ -369,7 +366,7 @@ search.shift<-function(RR,
         hist(ran.diffR, main="",cex.lab=1.5,
              yaxt="n",ylab="All clades together",xlab="",mgp=c(0.2,0.5,0),xaxt="n",
              xlim = c(1.1 * min(c(leaf2NC.diff,ran.diffR)),1.1 * max(c(leaf2NC.diff,ran.diffR))))
-        hist(c(leaf2NC.diff,ran.diffR),plot=F)->hi
+        hist(c(leaf2NC.diff,ran.diffR),plot=FALSE)->hi
         if(length(hi$breaks)%%2==1) (hi$breaks[seq(1,length(hi$breaks),2)])->athi else
           c(hi$breaks[seq(1,length(hi$breaks),2)],
             (hi$breaks[length(hi$breaks)]+abs(diff(hi$breaks[seq(1,length(hi$breaks),2)][1:2]))))->athi
@@ -432,7 +429,7 @@ search.shift<-function(RR,
           hist(ran.diff[[m]], main="",cex.lab=1.5,
                yaxt="n",ylab=paste("node", node[m], sep = " "),xlab="",mgp=c(0.2,0.5,0),xaxt="n",
                xlim = c(1.1 * min(c(leaf2N.diff[m],ran.diff[[m]])),1.1 * max(c(leaf2N.diff[m],ran.diff[[m]]))))
-          hist(c(leaf2N.diff[m],ran.diff[[m]]),plot=F)->hi
+          hist(c(leaf2N.diff[m],ran.diff[[m]]),plot=FALSE)->hi
           if(length(hi$breaks)%%2==1) (hi$breaks[seq(1,length(hi$breaks),2)])->athi else
             c(hi$breaks[seq(1,length(hi$breaks),2)],
               (hi$breaks[length(hi$breaks)]+abs(diff(hi$breaks[seq(1,length(hi$breaks),2)][1:2]))))->athi
@@ -458,7 +455,8 @@ search.shift<-function(RR,
       return(res)
     }
   } else {
-    frame <- data.frame(status = state, rate = rates[match(names(state),
+    state <- treedata(tree, state, sort = TRUE)[[2]][,1]
+    frame <- data.frame(status = as.factor(state), rate = rates[match(names(state),
                                                            rownames(rates))])
     p.status.diff <- array()
     if (length(unique(state)) > 2) {
@@ -498,7 +496,7 @@ search.shift<-function(RR,
         hist(status.diffS[, idx[i]], main="",xaxt="n",cex.lab=1.5,
              yaxt="n",ylab=paste("state", colnames(status.diffS)[idx[i]], sep = " "),xlab="",mgp=c(0.2,0.5,0),
              xlim = c(1.1*min(c(status.diff[idx[i]],status.diffS[, idx[i]])),1.1*max(c(status.diff[idx[i]],status.diffS[, idx[i]]))))
-        hist(c(status.diff[idx[i]],status.diffS[, idx[i]]),plot=F)->hi
+        hist(c(status.diff[idx[i]],status.diffS[, idx[i]]),plot=FALSE)->hi
         if(length(hi$breaks)%%2==1) (hi$breaks[seq(1,length(hi$breaks),2)])->athi else
           c(hi$breaks[seq(1,length(hi$breaks),2)],
             (hi$breaks[length(hi$breaks)]+abs(diff(hi$breaks[seq(1,length(hi$breaks),2)][1:2]))))->athi
@@ -547,7 +545,7 @@ search.shift<-function(RR,
            yaxt="n",ylab="",xlab="random differences",
            cex.lab=1,mgp=c(1.5,0.8,0),
            xlim = c(1.1*min(c(status.diff,status.diffS)), 1.1*max(c(status.diff,status.diffS))))
-      hist(c(status.diff,status.diffS),plot=F)->hi
+      hist(c(status.diff,status.diffS),plot=FALSE)->hi
       if(length(hi$breaks)%%2==1) (hi$breaks[seq(1,length(hi$breaks),2)])->athi else
         c(hi$breaks[seq(1,length(hi$breaks),2)],
           (hi$breaks[length(hi$breaks)]+abs(diff(hi$breaks[seq(1,length(hi$breaks),2)][1:2]))))->athi

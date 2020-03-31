@@ -36,15 +36,14 @@
 #' DataOrnithodirans$massdino->massdino
 #'
 #' # Case 1. "RRphylo" without accounting for the effect of a covariate
-#' RRphylo(tree=treedino,y=massdino)
+#' RRphylo(tree=treedino,y=massdino)->RRcova
 #'
 #' # Case 2. "RRphylo" accounting for the effect of a covariate
 #' # "RRphylo" on the covariate in order to retrieve ancestral state values
-#' RRphylo(tree=treedino,y=massdino)->RRcova
 #' c(RRcova$aces,massdino)->cov.values
 #' c(rownames(RRcova$aces),names(massdino))->names(cov.values)
 #'
-#' RRphylo(tree=treedino,y=massdino,cov=cov.values)
+#' RRphylo(tree=treedino,y=massdino,cov=cov.values)->RR
 #'
 #' # Case 3. "RRphylo" specifying the ancestral states
 #' data("DataCetaceans")
@@ -53,9 +52,10 @@
 #' DataCetaceans$brainmasscet->brainmasscet
 #' DataCetaceans$aceMyst->aceMyst
 #'
-#' RRphylo(tree=treecet,y=masscet,aces=aceMyst)
+#' RRphylo(tree=treecet,y=masscet,aces=aceMyst)->RR
 #'
 #' # Case 4. Multiple "RRphylo"
+#' library(ape)
 #' drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
 #' masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
 #'
@@ -63,7 +63,7 @@
 #' RRmass.multi$aces[,1]->acemass.multi
 #' c(acemass.multi,masscet.multi)->x1.mass
 #'
-#' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)
+#' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RR
 #'     }
 
 
@@ -128,8 +128,10 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
 
   if (is.binary.tree(tree))
     t <- tree else t <- multi2di(tree, random = FALSE)
-  if (class(y) == "data.frame")
-    y <- treedata(tree, y, sort = TRUE)[[2]]
+  # if (inherits(y,"data.frame"))
+  #   y <- treedata(tree, y, sort = TRUE)[[2]]
+  if(is.null(nrow(y))) y <- treedata(tree, y, sort = TRUE)[[2]][,1] else y <- treedata(tree, y, sort = TRUE)[[2]]
+
   Loriginal <-L<-makeL(t)
   L1original <-L1<-makeL1(t)
 
@@ -152,7 +154,7 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
       rootV <- weighted.mean(u1[, 1], u1[, 2])
     }
   }else {
-    if (class(rootV) == "data.frame") as.matrix(rootV)->rootV  else  rootV <- rootV
+    if (inherits(rootV,"data.frame")) as.matrix(rootV)->rootV  else  rootV <- rootV
 
   }
 
@@ -176,7 +178,7 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
         }
         rownames(aceV) <- ac
       }
-      if (class(aceV) == "data.frame")
+      if (inherits(aceV,"data.frame"))
         aceV <- as.matrix(aceV)
       P <- aceV
       N <- as.numeric(rownames(aceV))
@@ -444,9 +446,6 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
       rates <- apply(rates, 1, function(x) sqrt(sum(x^2)))
       rates <- as.matrix(rates)
     }
-    else {
-      rates <- rates
-    }
   } else {
 
     cov[match(rownames(betas),names(cov))]->cov
@@ -492,6 +491,7 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
       rates <- betas
     }
   }
+
 
   if (is.null(aces)) {
     res <- list(t, Loriginal, L1original, rates, aceRR, y.hat, betasREAL,

@@ -16,12 +16,13 @@
 #' @return \strong{$brownian_tree} if "brownian" is \code{TRUE} in \code{argSTS}, a copy of the original tree with branch lengths set such that the Brownian motion reconstruction of the character on this tree is approximately the same as the stable ancestral reconstruction.
 #' @return \strong{$ace.prior.values} if \code{aces} is specified, the function returns a dataframe containing the corresponding node number on the \code{RRphylo} tree for each node, the original (preset) and the estimated values, and the 95\% credible interval.
 #' @author Silvia Castiglione, Carmela Serio, Pasquale Raia
-#' @details The StableTraits software is available at http://www.michaelelliot.net/stabletraits/, along with instructions for compilation. Once it is installed, the user must set as R working directory the folder where the StableTraits software are installed. Further information about the arguments and outputs of StableTraits and StableTraitsSum can be found at http://www.michaelelliot.net/stabletraits/. \code{StableTraitsR} automatically recognizes which Operating System is running on the computer (it has been tested successfully on MacOS and Windows machines).
+#' @details The StableTraits software is available at https://mickelliot.com/, along with instructions for compilation. Once it is installed, the user must set as R working directory the folder where the StableTraits software are installed. Further information about the arguments and outputs of StableTraits and StableTraitsSum can be found at https://mickelliot.com/. \code{StableTraitsR} automatically recognizes which Operating System is running on the computer (it has been tested successfully on MacOS and Windows machines).
 #' @importFrom utils read.table write.table
 #' @importFrom ape write.tree read.tree
 #' @export
 #' @references Elliot, M. G., & Mooers, A. Ø. (2014). Inferring ancestral states without assuming neutrality or gradualism using a stable model of continuous character evolution. \emph{BMC evolutionary biology}, 14: 226. doi.org/10.1186/s12862-014-0226-8
-#' @examples \donttest{
+#' @examples
+#' \dontrun{
 #' library(ape)
 #' library(phytools)
 #'
@@ -101,7 +102,7 @@ StableTraitsR<-function(tree,y,path,output=NULL,aces=NULL,argST=NULL,argSTS=NULL
   }
 
   write.tree(t,file=paste(path,"tree",sep=""))
-  write.table(y,file=paste(path,"y",sep=""),col.names = F,quote=F)
+  write.table(y,file=paste(path,"y",sep=""),col.names = FALSE,quote=FALSE)
 
   if(is.null(output)) "output"->out else output->out
 
@@ -155,10 +156,10 @@ StableTraitsR<-function(tree,y,path,output=NULL,aces=NULL,argST=NULL,argSTS=NULL
     system2("cmd", args = tot.argSTS)
   }
 
-  read.table(paste(path,out,".ancstates",sep=""),header = T)->aces.list
-  read.table(paste(path,out,".brlens",sep=""),header = T)->rates.res
+  read.table(paste(path,out,".ancstates",sep=""),header = TRUE)->aces.list
+  read.table(paste(path,out,".brlens",sep=""),header = TRUE)->rates.res
   read.tree(paste(path,out,".tree",sep=""))->STtree
-  read.table(paste(path,out,".progress",sep=""),header = T)->STprogress
+  read.table(paste(path,out,".progress",sep=""),header = TRUE)->STprogress
   read.tree(paste(path,out,".rates_tree",sep=""))->rates_tree
   if("brownian"%in%names(argSTS)) read.tree(paste(path,out,".scaled_tree",sep=""))->brownian_tree else NULL->brownian_tree
 

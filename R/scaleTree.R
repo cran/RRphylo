@@ -1,5 +1,5 @@
 #' @title Phylogenetic tree calibration
-#' @description The function is a wrapper around the functions "scalePhylo", "assign.ages", and "assign.brlen" written by Gene Hunt (http://paleobiology.si.edu/staff/individuals/hunt.cfm) . It rescales tree branch lengths according to given calibration dates.
+#' @description The function is a wrapper around the functions "scalePhylo", "assign.ages", and "assign.brlen" written by Gene Hunt (http://paleobiology.si.edu/staff/individuals/hunt.cfm). It rescales tree branch lengths according to given calibration dates.
 #' @usage scaleTree(tree, tip.ages, node.ages=NULL, min.branch=0.1)
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric and fully dichotomous.
 #' @param tip.ages a named vector including the ages (i.e. distance from the youngest tip within the tree) of the tips to be changed. If unspecified, the function assumes all the tips are correctly placed with respect to the root.
@@ -29,8 +29,8 @@
 #' edge.col[which(treeS1$edge[,2]%in%getDescendants(treeS1,146))]<-"red"
 #'
 #' layout(2:1)
-#' plot(tree,edge.color = edge.col,show.tip.label=F)
-#' plot(treeS1,edge.color = edge.col,show.tip.label=F)
+#' plot(tree,edge.color = edge.col,show.tip.label=FALSE)
+#' plot(treeS1,edge.color = edge.col,show.tip.label=FALSE)
 #'
 #' #### Example 2 ####
 #' nodeAges<-c(23.5,15.6)
@@ -42,9 +42,9 @@
 #'                                     getDescendants(treeS1,139)))]<-"red"
 #'
 #' layout(2:1)
-#' plot(tree,edge.color = edge.col,show.tip.label=F)
+#' plot(tree,edge.color = edge.col,show.tip.label=FALSE)
 #' nodelabels(bg="w",frame="n",node=c(85,139),col="green")
-#' plot(treeS2,edge.color = edge.col,show.tip.label=F)
+#' plot(treeS2,edge.color = edge.col,show.tip.label=FALSE)
 #' nodelabels(bg="w",frame="n",node=c(85,139),col="green")
 #'
 #' #### Example 3 ####
@@ -59,9 +59,9 @@
 #'                                     getDescendants(treeS3,145)))]<-"red"
 #'
 #' layout(2:1)
-#' plot(tree,edge.color = edge.col,show.tip.label=F)
+#' plot(tree,edge.color = edge.col,show.tip.label=FALSE)
 #' nodelabels(bg="w",frame="n",node=145,col="green")
-#' plot(treeS3,edge.color = edge.col,show.tip.label=F)
+#' plot(treeS3,edge.color = edge.col,show.tip.label=FALSE)
 #' nodelabels(bg="w",frame="n",node=145,col="green")
 #'}
 
@@ -99,7 +99,7 @@ scaleTree<- function(tree, tip.ages=NULL, node.ages=NULL, min.branch=0.1)
   i=1
   while(i<=length(age.vec)){
     age.vec[as.character(getMommy(tree,names(age.vec[i])))]->moms
-    if(any(moms<=age.vec[i])){
+    if(any(moms<age.vec[i])){
       if(as.numeric(names(moms[which(moms<age.vec[i])][1]))==(Ntip(tree)+1)) warning("The tree root has been moved, tree height has changed")
       if(!is.null(node.ages)&names(moms[which(moms<age.vec[i])][1])%in%names(node.ages)){
         names(age.vec[i])->nam
