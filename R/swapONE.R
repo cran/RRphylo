@@ -1,19 +1,32 @@
 #' @title Create alternative phylogenies from a given tree
 #' @usage swapONE(tree,node=NULL,si=0.5,si2=0.5,plot.swap=FALSE)
-#' @description The function produces an alternative phylogeny with altered topology and branch length, and computes the Kuhner-Felsenstein (Kuhner & Felsenstein 1994) distance between original and 'swapped' tree.
-#' @param tree a phylogenetic tree. The tree needs not to be ultrametric or fully dichotomous.
-#' @param node if specified, the clades subtended by such \code{node(s)} are imposed to be monophyletic. In this case, the function can still swap tips \emph{within} the clade.
+#' @description The function produces an alternative phylogeny with altered
+#'   topology and branch length, and computes the Kuhner-Felsenstein (Kuhner &
+#'   Felsenstein 1994) distance between original and 'swapped' tree.
+#' @param tree a phylogenetic tree. The tree needs not to be ultrametric or
+#'   fully dichotomous.
+#' @param node if specified, the clades subtended by such \code{node(s)} are
+#'   imposed to be monophyletic. In this case, the function can still swap tips
+#'   \emph{within} the clade.
 #' @param si the proportion of tips whose topologic arrangement will be swapped.
 #' @param si2 the proportion of nodes whose age will be changed.
-#' @param plot.swap if \code{TRUE}, the function plots the swapped tree. Swapped positions appear in red. Nodes with altered ages appear in green.
-#' @details \code{swapONE} changes the tree topology and branch lengths. Up to half of the tips, and half of the branch lengths can be changed randomly. Each randomly selected node is allowed to move up to 2 nodes apart from its original position.
+#' @param plot.swap if \code{TRUE}, the function plots the swapped tree. Swapped
+#'   positions appear in red. Nodes with altered ages appear in green.
+#' @details \code{swapONE} changes the tree topology and branch lengths. Up to
+#'   half of the tips, and half of the branch lengths can be changed randomly.
+#'   Each randomly selected node is allowed to move up to 2 nodes apart from its
+#'   original position.
 #' @export
 #' @importFrom stats runif
-#' @importFrom phangorn KF.dist
 #' @importFrom ape cophenetic.phylo
-#' @return The function returns a list containing the 'swapped' version of the original tree, and the Kuhner-Felsenstein distance between the trees.
-#' @author Silvia Castiglione, Pasquale Raia, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
-#' @references Kuhner, M. K. & Felsenstein, J. (1994). A simulation comparison of phylogeny algorithms under equal and unequal evolutionary rates, \emph{Molecular Biology and Evolution}, 11: 459-468.
+#' @return The function returns a list containing the 'swapped' version of the
+#'   original tree, and the Kuhner-Felsenstein distance between the trees.
+#' @author Silvia Castiglione, Pasquale Raia, Carmela Serio, Alessandro
+#'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
+#'   Carotenuto
+#' @references Kuhner, M. K. & Felsenstein, J. (1994). A simulation comparison
+#'   of phylogeny algorithms under equal and unequal evolutionary rates,
+#'   \emph{Molecular Biology and Evolution}, 11: 459-468.
 #' @examples
 #' data("DataOrnithodirans")
 #' DataOrnithodirans$treedino->treedino
@@ -23,7 +36,7 @@
 #'
 #' ## Case 2. change the topology and the branch lengths of the
 #' ##         tree by keeping the monophyly of a specific clade
-#' swapONE(tree=treedino,node=423,si=0.5,si2=0.5,plot.swap=FALSE)
+#' swapONE(tree=treedino,node=422,si=0.5,si2=0.5,plot.swap=FALSE)
 
 
 swapONE<-function(tree,
@@ -34,6 +47,7 @@ swapONE<-function(tree,
 
   #require(phangorn)
 
+  tree1<-tree
   maxN <- function(x, N=2){
     len <- length(x)
     if(N>len){
@@ -45,6 +59,7 @@ swapONE<-function(tree,
 
   ### swap tips ###
   if(si>0){
+    if(Ntip(tree)*si==1) 2/Ntip(tree)->si
     apply(vcv(tree),1,function(x) which(x==maxN(x,N=3)))->shifts
     if(!is.null(node)){
       for(i in 1:length(node)){
@@ -118,7 +133,6 @@ swapONE<-function(tree,
     data.frame(tree$tip.label,DF,ages-DF[,2],ages)->DF
     colnames(DF)<-c("tip","Ntip","leaf","age.node","age")
 
-
     check<-array()
     for(i in 1:length(t.change)){
       if(DF[DF[,1]==strsplit(names(t.change),"\\.")[[i]][1],5]<DF[DF[,1]==strsplit(names(t.change),"\\.")[[i]][2],4] | DF[DF[,1]==strsplit(names(t.change),"\\.")[[i]][2],5]<DF[DF[,1]==strsplit(names(t.change),"\\.")[[i]][1],4]) check[i]<-"bar" else check[i]<-"good"
@@ -167,8 +181,9 @@ swapONE<-function(tree,
   }else sw.tips<-NULL
   ### change node ages ######
   if(si2>0){
+    if(Ntip(tree)*si2==1) 2/Ntip(tree)->si2
     data.frame(tree1$edge,nodeHeights(tree1),tree1$edge.length)->nodedge
-    sample(nodedge[nodedge[,2]>Ntip(tree1)+1,2],Nnode(tree1)*si2)->N
+    sample(nodedge[nodedge[,2]>Ntip(tree1)+1,2],(Nnode(tree1)-1)*si2)->N
 
     for(i in 1:length(N)){
       runif(1,nodedge[nodedge[,2]==N[i],3],min(nodedge[nodedge[,1]==N[i],4]))->new.pos
@@ -180,7 +195,7 @@ swapONE<-function(tree,
     }
     nodedge[,5]->tree1$edge.length
   }else N<-NULL
-  KF.dist(tree,tree1)->KF
+  phangorn::KF.dist(tree,tree1)->KF
 
   if(isTRUE(plot.swap)){
     colo<-rep("black",nrow(tree$edge))

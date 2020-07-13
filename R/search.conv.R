@@ -1,57 +1,125 @@
 #' @title Searching for morphological convergence among species and clades
-#' @description The function scans a phylogenetic tree looking for morphological convergence between entire clades or species evolving under specific states.
+#' @description The function scans a phylogenetic tree looking for morphological
+#'   convergence between entire clades or species evolving under specific
+#'   states.
 #' @usage search.conv(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
-#' min.dim=NULL,max.dim=NULL,min.dist=NULL,PGLSf=FALSE,declust=FALSE,nsim=1000,rsim=1000,
-#' clus=.5,foldername=NULL)
-#' @param RR an object produced by \code{\link{RRphylo}}. This is not indicated if convergence among states is tested.
-#' @param tree a phylogenetic tree. The tree needs not to be ultrametric or fully dichotomous. This is not indicated if convergence among clades is tested.
-#' @param y a multivariate phenotype. The object \code{y} should be either a matrix or dataframe with species names as rownames.
-#' @param nodes node pair to be tested. If unspecified, the function automatically searches for convergence among clades. Notice the node number must refer to the dichotomic version of the original tree, as produced by \code{RRphylo}.
-#' @param state the named vector of tip states. The function tests for convergence within a single state or among different states (this latter case is especially meant to test for iterative evolution as for example the appearance of repeated morphotypes into different clades). In both cases, the state for non-focal species (i.e. not belonging to any convergent group) must be indicated as "nostate".
-#' @param aceV phenotypic values at internal nodes. The object \code{aceV} should be either a matrix or dataframe with nodes (referred to the dichotomic version of the original tree, as produced by \code{RRphylo}) as rownames. If \code{aceV} are not indicated, ancestral phenotypes are estimated via \code{RRphylo}.
-#' @param min.dim the minimum size of the clades to be compared. When \code{nodes} is indicated, it is the minimum size of the smallest clades in \code{nodes}, otherwise it is set at one tenth of the tree size.
-#' @param max.dim the maximum size of the clades to be compared. When \code{nodes} is indicated, it is \code{min.dim}*2 if the largest clade in \code{nodes} is smaller than this value, otherwise it corresponds to the size of the largest clade. Whitout \code{nodes} it is set at one third of the tree size.
-#' @param min.dist the minimum distance between the clades to be compared. When \code{nodes} is indicated, it is the distance between the pair. Under the automatic mode, the user can choose whether time distance or node distance (i.e. the number of nodes intervening between the pair) should be used. If time distance has to be considered, \code{min.dist} should be a character argument containing the word "time" and then the actual time distance to be used. The same is true for node distance, but the word "node" must preceed the node distance to be used. For example, if the user want to test only clades more distant than 10 time units, the argument should be "time10". If clades separated by more than 8 nodes has to be tested, the argument \code{min.dist} should be "node8". If left unspecified, it automatically searches for convergence between clades separated by a number of nodes bigger than one tenth of the tree size.
-#' @param PGLSf has been deprecated; please see the argument \code{declust} instead.
-#' @param declust if species under a given state (or a pair of states) to be tested for convergence are phylogenetically closer than expected by chance, trait similarity might depend on proximity rather than true convergence. In this case, by setting \code{declust = TRUE}, tips under the focal state (or states) are removed randomly until clustering disappears. A minimum of 3 species per state is enforced to remain anyway.
-#' @param nsim number of simulations to perform sampling within the theta random distribution. It is set at 1000 by default.
-#' @param rsim number of simulations to be performed to produce the random distribution of theta values. It is set at 1000 by default.
-#' @param clus the proportion of clusters to be used in parallel computing.
+#'   min.dim=NULL,max.dim=NULL,min.dist=NULL,PGLSf=FALSE,declust=FALSE,nsim=1000,rsim=1000,
+#'    clus=.5,foldername=NULL)
+#' @param RR an object produced by \code{\link{RRphylo}}. This is not indicated
+#'   if convergence among states is tested.
+#' @param tree a phylogenetic tree. The tree needs not to be ultrametric or
+#'   fully dichotomous. This is not indicated if convergence among clades is
+#'   tested.
+#' @param y a multivariate phenotype. The object \code{y} should be either a
+#'   matrix or dataframe with species names as rownames.
+#' @param nodes node pair to be tested. If unspecified, the function
+#'   automatically searches for convergence among clades. Notice the node number
+#'   must refer to the dichotomic version of the original tree, as produced by
+#'   \code{RRphylo}.
+#' @param state the named vector of tip states. The function tests for
+#'   convergence within a single state or among different states (this latter
+#'   case is especially meant to test for iterative evolution as for example the
+#'   appearance of repeated morphotypes into different clades). In both cases,
+#'   the state for non-focal species (i.e. not belonging to any convergent
+#'   group) must be indicated as "nostate".
+#' @param aceV phenotypic values at internal nodes. The object \code{aceV}
+#'   should be either a matrix or dataframe with nodes (referred to the
+#'   dichotomic version of the original tree, as produced by \code{RRphylo}) as
+#'   rownames. If \code{aceV} are not indicated, ancestral phenotypes are
+#'   estimated via \code{RRphylo}.
+#' @param min.dim the minimum size of the clades to be compared. When
+#'   \code{nodes} is indicated, it is the minimum size of the smallest clades in
+#'   \code{nodes}, otherwise it is set at one tenth of the tree size.
+#' @param max.dim the maximum size of the clades to be compared. When
+#'   \code{nodes} is indicated, it is \code{min.dim}*2 if the largest clade in
+#'   \code{nodes} is smaller than this value, otherwise it corresponds to the
+#'   size of the largest clade. Without \code{nodes} it is set at one third of
+#'   the tree size.
+#' @param min.dist the minimum distance between the clades to be compared. When
+#'   \code{nodes} is indicated, it is the distance between the pair. Under the
+#'   automatic mode, the user can choose whether time distance or node distance
+#'   (i.e. the number of nodes intervening between the pair) should be used. If
+#'   time distance has to be considered, \code{min.dist} should be a character
+#'   argument containing the word "time" and then the actual time distance to be
+#'   used. The same is true for node distance, but the word "node" must precede
+#'   the node distance to be used. For example, if the user want to test only
+#'   clades more distant than 10 time units, the argument should be "time10". If
+#'   clades separated by more than 8 nodes has to be tested, the argument
+#'   \code{min.dist} should be "node8". If left unspecified, it automatically
+#'   searches for convergence between clades separated by a number of nodes
+#'   bigger than one tenth of the tree size.
+#' @param PGLSf has been deprecated; please see the argument \code{declust}
+#'   instead.
+#' @param declust if species under a given state (or a pair of states) to be
+#'   tested for convergence are phylogenetically closer than expected by chance,
+#'   trait similarity might depend on proximity rather than true convergence. In
+#'   this case, by setting \code{declust = TRUE}, tips under the focal state (or
+#'   states) are removed randomly until clustering disappears. A minimum of 3
+#'   species per state is enforced to remain anyway.
+#' @param nsim number of simulations to perform sampling within the theta random
+#'   distribution. It is set at 1000 by default.
+#' @param rsim number of simulations to be performed to produce the random
+#'   distribution of theta values. It is set at 1000 by default.
+#' @param clus the proportion of clusters to be used in parallel computing. To
+#'   run the single-threaded version of \code{search.conv} set \code{clus} = 0.
 #' @param foldername the path of the folder where plots are to be found.
 #' @export
 #' @importFrom grDevices chull
-#' @importFrom vegan betadisper
-#' @importFrom cluster pam
 #' @importFrom graphics axis layout lines segments
 #' @importFrom stats TukeyHSD aov princomp
-#' @importFrom plotrix polar.plot
-#' @importFrom geomorph procD.pgls geomorph.data.frame
 #' @importFrom ape vcv cophenetic.phylo
-#' @return If convergence between clades is tested, the function returns a list including:
-#' @return \itemize{\item\strong{$node pairs}: a dataframe containing for each pair of nodes:
-#' \itemize{\item ang.bydist.tip: the mean theta angle between clades divided by the time distance.
-#' \item ang.conv: the mean theta angle between clades plus the angle between aces, divided by the time distance.
-#' \item ang.ace: the angle between aces.
-#' \item ang.tip: the mean theta angle between clades.
-#' \item nod.dist: the distance intervening between clades in terms of number of nodes.
-#' \item time.dist: the time distance intervening between the clades.
-#' \item p.ang.bydist: the p-value computed for ang.bydist.tip.
-#' \item p.ang.conv: the p-value computed for ang.conv.
-#' \item clade.size: the size of clades.
-#' }
-#' \item\strong{$node pairs comparison}: pairwise comparison between significantly convergent pairs (all pairs if no istance of significance was found) performed on the distance from group centroids (the mean phenotype per clade).
-#' \item\strong{$average distance from group centroids}: smaller average distances mean less variable phenotypes within the pair.
-#' }
-#' @return If convergence between (or within a single state) states is tested, the function returns a dataframe including for each pair of states (or single state):
-#' \itemize{
-#' \item ang.state: the mean theta angle between species belonging to different states (or within a single state).
-#' \item ang.state.time: the mean of theta angle between species belonging to different states (or within a single state) divided by time distance.
-#' \item p.ang.state: the p-value computed for ang.state.
-#' \item p.ang.state.time: the p-value computed for ang.state.time.
-#' }
-#' @details Regardless the case (either 'state' or 'clade'), the function stores a plot into the folder specified by \code{foldername}. If convergence among clades is tested, the clade pair plotted corresponds to those clades with the smallest \code{$average distance from group centroid}. The figure shows the Euclidean distances computed between the MRCAs of the clades and the mean Euclidean distance computed between all the tips belonging to the converging clades, as compared to the distribution of these same figures across the rest of the tree. Furthermore, the function stores the PC1/PC2 plot obtained by PCA of the species phenotypes. Convergent clades are indicated by colored convex hulls. Large colored dots represent the mean phenotypes per clade (i.e. their group centroids). Eventually, a modified traitgram plot is produced, highlighting the branches of the clades found to converge. In both PCA and traitgram, asterisks represent the ancestral phenotypes of the individual clades. If convergence among states is tested, the function produces a PC plot with colored convex hulls enclosing species belonging to different states. Furthermore, it generates circular plots of the mean angle between states (blue lines) and the range of random angles (gray shaded area). The p-value for the convergence test is printed within the circular plots.
-#' @author Silvia Castiglione, Carmela Serio, Pasquale Raia, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto, Paolo Piras, Davide Tamagnini
-#' @references Castiglione, S., Serio, C., Tamagnini, D., Melchionna, M., Mondanaro, A., Di Febbraro, M., Profico, A., Piras, P.,Barattolo, F., & Raia, P. (2019). A new, fast method to search for morphological convergence with shape data. \emph{PLoS ONE}, 14, e0226949. https://doi.org/10.1371/journal.pone.0226949
+#' @return If convergence between clades is tested, the function returns a list
+#'   including:
+#' @return \itemize{\item\strong{$node pairs}: a dataframe containing for each
+#'   pair of nodes: \itemize{\item ang.bydist.tip: the mean theta angle between
+#'   clades divided by the time distance. \item ang.conv: the mean theta angle
+#'   between clades plus the angle between aces, divided by the time distance.
+#'   \item ang.ace: the angle between aces. \item ang.tip: the mean theta angle
+#'   between clades. \item nod.dist: the distance intervening between clades in
+#'   terms of number of nodes. \item time.dist: the time distance intervening
+#'   between the clades. \item p.ang.bydist: the p-value computed for
+#'   ang.bydist.tip. \item p.ang.conv: the p-value computed for ang.conv. \item
+#'   clade.size: the size of clades. } \item\strong{$node pairs comparison}:
+#'   pairwise comparison between significantly convergent pairs (all pairs if no
+#'   instance of significance was found) performed on the distance from group
+#'   centroids (the mean phenotype per clade). \item\strong{$average distance
+#'   from group centroids}: smaller average distances mean less variable
+#'   phenotypes within the pair. }
+#' @return If convergence between (or within a single state) states is tested,
+#'   the function returns a dataframe including for each pair of states (or
+#'   single state): \itemize{ \item ang.state: the mean theta angle between
+#'   species belonging to different states (or within a single state). \item
+#'   ang.state.time: the mean of theta angle between species belonging to
+#'   different states (or within a single state) divided by time distance. \item
+#'   p.ang.state: the p-value computed for ang.state. \item p.ang.state.time:
+#'   the p-value computed for ang.state.time. }
+#' @details Regardless the case (either 'state' or 'clade'), the function stores
+#'   a plot into the folder specified by \code{foldername}. If convergence among
+#'   clades is tested, the clade pair plotted corresponds to those clades with
+#'   the smallest \code{$average distance from group centroid}. The figure shows
+#'   the Euclidean distances computed between the MRCAs of the clades and the
+#'   mean Euclidean distance computed between all the tips belonging to the
+#'   converging clades, as compared to the distribution of these same figures
+#'   across the rest of the tree. Furthermore, the function stores the PC1/PC2
+#'   plot obtained by PCA of the species phenotypes. Convergent clades are
+#'   indicated by colored convex hulls. Large colored dots represent the mean
+#'   phenotypes per clade (i.e. their group centroids). Eventually, a modified
+#'   traitgram plot is produced, highlighting the branches of the clades found
+#'   to converge. In both PCA and traitgram, asterisks represent the ancestral
+#'   phenotypes of the individual clades. If convergence among states is tested,
+#'   the function produces a PC plot with colored convex hulls enclosing species
+#'   belonging to different states. Furthermore, it generates circular plots of
+#'   the mean angle between states (blue lines) and the range of random angles
+#'   (gray shaded area). The p-value for the convergence test is printed within
+#'   the circular plots.
+#' @author Silvia Castiglione, Carmela Serio, Pasquale Raia, Alessandro
+#'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
+#'   Carotenuto, Paolo Piras, Davide Tamagnini
+#' @references Castiglione, S., Serio, C., Tamagnini, D., Melchionna, M.,
+#'   Mondanaro, A., Di Febbraro, M., Profico, A., Piras, P.,Barattolo, F., &
+#'   Raia, P. (2019). A new, fast method to search for morphological convergence
+#'   with shape data. \emph{PLoS ONE}, 14, e0226949.
+#'   https://doi.org/10.1371/journal.pone.0226949
 #' @examples
 #' \dontrun{
 #' data("DataFelids")
@@ -88,11 +156,29 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
   # require(parallel)
   # require(vegan)
   # require(cluster)
-  # require(picante)
   # require(plotrix)
   # require(RColorBrewer)
-  # require(tseries)
   # require(geomorph)
+
+  if (!requireNamespace("vegan", quietly = TRUE)) {
+    stop("Package \"vegan\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+
+  if (!requireNamespace("cluster", quietly = TRUE)) {
+    stop("Package \"cluster\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+
+  if (!requireNamespace("plotrix", quietly = TRUE)) {
+    stop("Package \"plotrix\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+
+  if (!requireNamespace("RColorBrewer", quietly = TRUE)) {
+    stop("Package \"RColorBrewer\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
 
   if(!missing(PGLSf)){
     warning("argument PGLSf is deprecated; please use declust instead.",
@@ -211,10 +297,10 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       RRaces[match(nod,rownames(RR$aces)),]->aces
 
       res<-list()
-      cl <- makeCluster(round((detectCores() * clus), 0))
+      if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1) else cl <- makeCluster(round((detectCores() * clus), 0))
       registerDoParallel(cl)
       res <- foreach(i = 1:(length(nod)-1),
-                     .packages = c("RRphylo","ape", "geiger", "phytools", "doParallel")) %dopar%
+                     .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
         {
           gc()
           nod[i]->sel1
@@ -355,7 +441,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       cl <- makeCluster(round((detectCores() * clus), 0))
       registerDoParallel(cl)
       res.ran <- foreach(k = 1:nsim,
-                         .packages = c("RRphylo","ape", "geiger", "phytools", "doParallel")) %dopar%
+                         .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
         {
           gc()
 
@@ -460,7 +546,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
         ### perform betadisper and TukeyHSD ###
         dist(do.call(rbind,phen2))->dis
-        betadisper(dis,gr)->bd
+        vegan::betadisper(dis,gr)->bd
         data.frame(bd$group,dist=bd$distance)->M
         sc.sel->x
         data.frame(gr=paste(rownames(x),x[,1],sep="/"),ndist=x[,5],dtime=x[,6])->xdist
@@ -506,7 +592,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
         ### perform betadisper and TukeyHSD ###
         dist(do.call(rbind,phen2))->dis
-        betadisper(dis,gr)->bd
+        vegan::betadisper(dis,gr)->bd
         data.frame(bd$group,dist=bd$distance)->M
         sc.sel->x
         data.frame(gr=paste(rownames(x),x[,1],sep="/"),ndist=x[,5],dtime=x[,6])->xdist
@@ -567,7 +653,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       cl <- makeCluster(round((detectCores() * clus), 0))
       registerDoParallel(cl)
       res <- foreach(i = 1:length(nod),
-                     .packages = c("RRphylo","ape", "geiger", "phytools", "doParallel")) %dopar%
+                     .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
         {
 
           gc()
@@ -685,7 +771,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       cl <- makeCluster(round((detectCores() * clus), 0))
       registerDoParallel(cl)
       res.ran <- foreach(k = 1:nsim,
-                         .packages = c("RRphylo","ape", "geiger", "phytools", "doParallel")) %dopar%
+                         .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
         {
           gc()
 
@@ -790,7 +876,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
         ### perform betadisper and TukeyHSD ###
         dist(do.call(rbind,phen2))->dis
-        betadisper(dis,gr)->bd
+        vegan::betadisper(dis,gr)->bd
         data.frame(bd$group,dist=bd$distance)->M
         sc.sel->x
         data.frame(gr=paste(rownames(x),x[,1],sep="/"),ndist=x[,5],dtime=x[,6])->xdist
@@ -837,7 +923,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
         ### perform betadisper and TukeyHSD ###
         dist(do.call(rbind,phen2))->dis
-        betadisper(dis,gr)->bd
+        vegan::betadisper(dis,gr)->bd
         data.frame(bd$group,dist=bd$distance)->M
         sc.sel->x
         data.frame(gr=paste(rownames(x),x[,1],sep="/"),ndist=x[,5],dtime=x[,6])->xdist
@@ -889,6 +975,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     linwd[which(colo!="gray")]<-3
     names(linwd)<-names(colo)
 
+    if(ncol(phen)>nrow(phen)) phen[,1:nrow(phen)]->phen
     princomp(phen)->a
     a$scores[order(a$scores[,1]),]->bb
     suppressWarnings(bb[match(c(nn[1],path1[-which(as.numeric(path1)<=nn[1])]),rownames(bb)),]->a1)
@@ -924,8 +1011,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     plot(bb[-match(nn, rownames(bb)),1:2], ylab="PC2",xlab="PC1",cex=1.5,mgp=c(1.5,0.5,0),font.lab=2,pch=21,col="black",bg="gray",asp=1)
     Plot_ConvexHull(xcoord = a1[,1], ycoord = a1[,2], lcolor = "#E7298A",lwd=3,lty=2, col.p = rgb(212/255,185/255,218/255,0.5))
     Plot_ConvexHull(xcoord = a2[,1], ycoord = a2[,2], lcolor = "#91003F",lwd=3,lty=2, col.p = rgb(212/255,185/255,218/255,0.5))
-    points(pam(a1, 1)$medoids,xlim=range(bb[,1]),ylim=range(bb[,2]),bg="#E7298A",type = "p",pch=21,col="black", cex=2.5)
-    points(pam(a2, 1)$medoids,xlim=range(bb[,1]),ylim=range(bb[,2]),bg="#91003F",type = "p",pch=21,col="black", cex=2.5)
+    points(cluster::pam(a1, 1)$medoids,xlim=range(bb[,1]),ylim=range(bb[,2]),bg="#E7298A",type = "p",pch=21,col="black", cex=2.5)
+    points(cluster::pam(a2, 1)$medoids,xlim=range(bb[,1]),ylim=range(bb[,2]),bg="#91003F",type = "p",pch=21,col="black", cex=2.5)
     points(a1[1,1],a1[1,2],xlim=range(bb[,1]),ylim=range(bb[,2]),col="black",type = "p",pch=8, cex=1.5,lwd=2)
     points(a2[1,1],a2[1,2],xlim=range(bb[,1]),ylim=range(bb[,2]),col="black",type = "p",pch=8, cex=1.5,lwd=2)
 
@@ -1024,11 +1111,12 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       layout(mat,heights = ht)
 
       c("nostate",names(sort(table(state.real), decreasing = TRUE)))->statetoplot
-      princomp(y)->compy
+      if(ncol(y)>nrow(y)) y[,1:nrow(y)]->ypc else y->ypc
+      princomp(ypc)->compy
       compy$scores[,1:2]->sco
       #y[,1:2]->sco
       sco[match(names(state),rownames(sco)),]->sco
-      brewer.pal(3,"Set2")[1]->cols
+      RColorBrewer::brewer.pal(3,"Set2")[1]->cols
       par(mar=c(2.5,2.5,1,1))
       plot(sco, ylab="PC2",xlab="PC1",cex=1.5,mgp=c(1.5,0.5,0),font.lab=2,xlim=c(range(sco[,1])[1]*1.1,range(sco[,1])[2]),col="white",asp=1)
       for(h in 1:length(statetoplot)){
@@ -1048,12 +1136,12 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       lbs<-seq(0,340,20)
 
       par(cex.axis=.75)
-      polar.plot(lengths=c(0,mean(unname(as.matrix(ccc)[c(3,4)])),mean(unname(as.matrix(ccc)[c(3,4)]))),
+      plotrix::polar.plot(lengths=c(0,mean(unname(as.matrix(ccc)[c(3,4)])),mean(unname(as.matrix(ccc)[c(3,4)]))),
                  polar.pos = c(0,ccc[7],ccc[8]),rp.type="p",line.col=rgb(0,0,0,0.6),
                  poly.col=rgb(127/255,127/255,127/255,0.4),start=90,radial.lim=range(0,max(ccc[c(3,4)])),radial.labels=""
                  ,boxed.radial = FALSE,mar=c(1,1,2,1),label.pos=lp,labels=lbs)
       title(main=onestate,cex.main = 2)
-      polar.plot(lengths=c(0,ccc[3],ccc[4]),polar.pos = c(0,ccc[5],ccc[6]),
+      plotrix::polar.plot(lengths=c(0,ccc[3],ccc[4]),polar.pos = c(0,ccc[5],ccc[6]),
                  line.col="blue",lwd=4,start=90,add=TRUE,radial.labels="",boxed.radial = FALSE)
       text(paste("p-value = ",ccc[9]),x=0,y=-max(ccc[c(3,4)])/2.3,cex=1.5,col="red")
 
@@ -1205,12 +1293,12 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       layout(mat,heights = ht)
 
       if("nostate"%in%state) c("nostate",names(sort(table(state.real), decreasing = TRUE)))->statetoplot else names(sort(table(state.real), decreasing = TRUE))->statetoplot
-
-      princomp(y)->compy
+      if(ncol(y)>nrow(y)) y[,1:nrow(y)]->ypc else y->ypc
+      princomp(ypc)->compy
       compy$scores[,1:2]->sco
       #y[,1:2]->sco
       sco[match(names(state),rownames(sco)),]->sco
-      brewer.pal(length(unique(state)),"Set2")->cols
+      RColorBrewer::brewer.pal(length(unique(state)),"Set2")->cols
       par(mar=c(2.5,2.5,1,1))
       plot(sco, ylab="PC2",xlab="PC1",cex=1.5,mgp=c(1.5,0.5,0),font.lab=2,xlim=c(range(sco[,1])[1]*1.1,range(sco[,1])[2]),col="white",asp=1)
       for(h in 1:length(statetoplot)){
@@ -1244,12 +1332,12 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       }
       for(i in 1:nrow(res.tot)){
         par(cex.axis=.75)
-        polar.plot(lengths=c(0,mean(unname(as.matrix(ccc)[i,c(3,4)])),mean(unname(as.matrix(ccc)[i,c(3,4)]))),
+        plotrix::polar.plot(lengths=c(0,mean(unname(as.matrix(ccc)[i,c(3,4)])),mean(unname(as.matrix(ccc)[i,c(3,4)]))),
                    polar.pos = c(0,ccc[i,7],ccc[i,8]),rp.type="p",line.col=rgb(0,0,0,0.6),
                    poly.col=rgb(127/255,127/255,127/255,0.4),start=90,radial.lim=range(0,max(ccc[,c(3,4)])),radial.labels=""
                    ,boxed.radial = FALSE,mar=c(1,1,2,1),label.pos=lp,labels=lbs)
         title(main=paste(as.character(res.tot[i,1]),as.character(res.tot[i,2]),sep="-"),cex.main = 2)
-        polar.plot(lengths=c(0,ccc[i,3],ccc[i,4]),polar.pos = c(0,ccc$l1[i],ccc$l2[i]),
+        plotrix::polar.plot(lengths=c(0,ccc[i,3],ccc[i,4]),polar.pos = c(0,ccc$l1[i],ccc$l2[i]),
                    line.col="blue",lwd=4,start=90,add=TRUE,radial.labels="",boxed.radial = FALSE)
         text(paste("p-value = ",ccc[i,9]),x=0,y=-max(ccc[i,c(3,4)])/2.3,cex=1.5,col="red")
       }
