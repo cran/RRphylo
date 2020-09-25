@@ -16,6 +16,7 @@
 #'@param min.branch the minimum branch length that will be imposed for shifted
 #'  nodes.
 #'@export
+#'@seealso \href{../doc/Tree-Manipulation.html#scaleTree}{\code{scaleTree} vignette}
 #'@importFrom geiger rescale
 #'@return Rescaled phylogentic tree.
 #'@author Silvia Castiglione, Pasquale Raia, Carmela Serio, Alessandro
@@ -82,6 +83,13 @@ scaleTree<- function(tree, tip.ages=NULL, node.ages=NULL, min.branch=0.1)
 {
   # require(ape)
   # require(phytools)
+
+  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
+    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
+    tree$tip.label<-tips(tree,(Ntip(tree)+1))
+    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
+    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+  }
 
   abs(min.branch)->min.diff
 

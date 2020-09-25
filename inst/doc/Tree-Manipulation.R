@@ -1,14 +1,4 @@
----
-title: "Phylogenetic tree calibration"
-author: "Silvia Castiglione, Carmela Serio, Pasquale Raia"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{scaleTree}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
-
-```{r, include = FALSE}
+## ---- include = FALSE---------------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -16,14 +6,8 @@ knitr::opts_chunk$set(
 
 require(RRphylo)
 options(rmarkdown.html_vignette.check_title = FALSE)
-```
 
-## scaleTree tool
-The function `scaleTree` is a useful tool to deal with phylogenetic age calibration written around Gene Hunt's scalePhylo function (http://paleobiology.si.edu/staff/individuals/hunt.cfm). It rescales branches and leaves of the tree according to species and/or nodes calibration ages (meant as distance from the youngest tip within the tree).
-
-If only species ages are supplied (argument `tip.ages`), the function changes leaves length, leaving node ages and internal branch lengths unaltered. When node ages are supplied (argument `node.ages`), the function shifts nodes position along their own branches while keeping other nodes and species positions unchanged.
-
-```{r echo=c(14:15,32:33), fig.dim=c(6,6), message=FALSE, warning=FALSE, dpi=200, out.width='98%'}
+## ----echo=c(14:15,32:33), fig.dim=c(6,6), message=FALSE, warning=FALSE, dpi=200, out.width='98%'----
 library(ape)
 library(phytools)
 library(geiger)
@@ -70,11 +54,8 @@ plot(tree,edge.color = edge.col,edge.width=1.5,show.tip.label=F)
 title("original",cex.main=1.2)
 plot(treeS1,edge.color = edge.col,edge.width=1.5,show.tip.label=F)
 title("node ages rescaled",cex.main=1.2)
-```
 
-It may happen that species and/or node ages to be calibrated are older than the age of their ancestors. In such cases, after moving the species (node) to its target age, the function reassembles the phylogeny above it by assigning the same branch length (set through the argument `min.branch`) to the all the  branches along the species (node) path, so that the tree is well-conformed and ancestor-descendants relationships remain unchanged. In this way changes to the original tree topology only pertain to the path along the "calibrated" species.
-
-```{r echo=7:8, fig.dim=c(6,3), message=FALSE, warning=FALSE, dpi=200, out.width='98%',fig.align="center"}
+## ----echo=7:8, fig.dim=c(6,3), message=FALSE, warning=FALSE, dpi=200, out.width='98%',fig.align="center"----
 H-dist.nodes(tree)[(Nnode(tree)+1),91]->sp.ages
 names(sp.ages)<-tree$tip.label[1]
 
@@ -103,10 +84,8 @@ plotinfo <- get("last_plot.phylo", envir = .PlotPhyloEnv)
 points(plotinfo$xx[1],plotinfo$yy[1],pch=16,col="blue",cex=1.2)
 points(plotinfo$xx[96],plotinfo$yy[96],pch=16,col="red",cex=1.2)
 
-```
 
-## Guided examples
-```{r echo=c(1:16,26:37,50:56), fig.dim=c(6,3), message=FALSE, warning=FALSE, dpi=200, out.width='98%',fig.align="center"}
+## ----echo=c(1:16,26:37,50:56), fig.dim=c(6,3), message=FALSE, warning=FALSE, dpi=200, out.width='98%',fig.align="center"----
 # load the RRphylo example dataset including Felids tree
 data("DataFelids")
 DataFelids$treefel->tree
@@ -118,7 +97,7 @@ H-dist.nodes(tree)[(Ntip(tree)+1),(Ntip(tree)+1):(Ntip(tree)+Nnode(tree))]->age.
 H-diag(vcv(tree))->age.tips
 
 # apply Pagel's lambda transformation to change node ages only 
-rescale(tree,"lambda",0.8)->tree1
+geiger::rescale(tree,"lambda",0.8)->tree1
 
 # apply scaleTree to the transformed phylogeny, by setting
 # the original ages at nodes as node.ages
@@ -158,7 +137,7 @@ title("scaleTree rescaled",cex.main=1.2)
 
 # apply Pagel's kappa transformation to change both species and node ages, 
 # including the age at the tree root
-rescale(tree,"kappa",0.5)->tree3
+geiger::rescale(tree,"kappa",0.5)->tree3
 
 # apply scaleTree to the transformed phylogeny, by setting
 # the original ages at nodes as node.ages
@@ -171,13 +150,146 @@ title("kappa rescaled",cex.main=1.2)
 plot(treeS3,edge.color = "black",show.tip.label=F)
 axis(side=1,at=c(0,4,8,12,16,20,24,28,32),labels=rev(c(0,4,8,12,16,20,24,28,32)),tck=-0.02,cex.axis=0.8)
 title("scaleTree rescaled",cex.main=1.2)
-```
 
+## ----echo=FALSE,fig.dim=c(6,3), message=FALSE, warning=FALSE, dpi=200, out.width='98%'----
+DataFelids$treefel->tree
+max(nodeHeights(tree))->H
 
+par(mfrow=c(1,2),mar=c(1,0.1,1.2,0.1),mgp=c(3,0.1,0.05))
+plot(tree,show.tip.label=F)
+axis(side=1,at=seq(2,32,5),labels=rev(c(0,5,10,15,20,25,30)),tck=-0.02,cex.axis=0.8)
+abline(v=H-5,col="blue")
+title("original",cex.main=1.2)
 
+plot(tree,show.tip.label=F)
+axis(side=1,at=seq(2,32,5),labels=rev(c(0,5,10,15,20,25,30)),tck=-0.02,cex.axis=0.8)
+title("original",cex.main=1.2)
+points(plotinfo$xx[129],plotinfo$yy[129],pch=16,col="red",cex=1.2)
 
+## ----eval=FALSE---------------------------------------------------------------
+#  cutPhylo(tree,age=5,keep.lineage = TRUE)
+#  cutPhylo(tree,age=5,keep.lineage = FALSE)
 
+## ----echo=FALSE,fig.dim=c(6,3), message=FALSE, warning=FALSE, dpi=200, out.width='98%'----
+par(mfrow=c(1,2),mar=c(1,0.1,1.2,0.1),mgp=c(3,0.1,0.05))
+age<-5
+{
+  distNodes(tree,(Ntip(tree)+1))->dN
+  max(nodeHeights(tree))-age->cutT
+  dN[,2]->dd
+  dd[which(dd>=cutT)]->ddcut
+  names(ddcut)->cutter
+  
+  ### Tips only ###
+  tree->tt
+  if(all(cutter%in%tree$tip.label)){
+    tt$edge.length[match(match(names(ddcut),tt$tip.label),tt$edge[,2])]<-
+      tt$edge.length[match(match(names(ddcut),tt$tip.label),tt$edge[,2])]-(ddcut-cutT)
+    #}
+  }else{
+    ### Tips and nodes ###
+    as.numeric(cutter[which(suppressWarnings(as.numeric(cutter))>Ntip(tree))])->cutn
+    i=1
+    while(i<=length(cutn)){
+      if(any(cutn%in%getDescendants(tree,cutn[i]))) cutn[-which(cutn%in%getDescendants(tree,cutn[i]))]->cutn
+      i=i+1
+    }
+    
+    tree->tt
+    i=1
+    while(i<=length(cutn)){
+      getMRCA(tt,tips(tree,cutn[i]))->nn
+      drop.clade(tt,tips(tt,nn))->tt
+      tt$tip.label[which(tt$tip.label=="NA")]<-paste("l",i,sep="")
+      i=i+1
+    }
+    
+    diag(vcv(tt))->times
+    if(any(times>cutT)){
+      times[which(times>cutT)]->times
+      tt$edge.length[match(match(names(times),tt$tip.label),tt$edge[,2])]<-
+        tt$edge.length[match(match(names(times),tt$tip.label),tt$edge[,2])]-(times-cutT)
+    }
+    
+  }
+  
+  tt->tt.age
+  plot(tt,show.tip.label=FALSE)
+  tiplabels(frame="n",col="blue",cex=.6,offset=0.5,
+            tip=which(!tt$tip.label%in%tree$tip.label),
+            text=tt$tip.label[which(!tt$tip.label%in%tree$tip.label)])
+  
+  axis(side=1,at=seq(2,27,5),labels=rev(c(5,10,15,20,25,30)),tck=-0.02,cex.axis=0.8)
+  title("cut at 5: keeping lineages",cex.main=1.2)
+  
+   drop.tip(tt.age,which(!tt.age$tip.label%in%tree$tip.label))->tt.age
+   plot(tt.age,show.tip.label=FALSE)
+   axis(side=1,at=seq(2,27,5),labels=rev(c(5,10,15,20,25,30)),tck=-0.02,cex.axis=0.8)
+   title("cut at 5: removing lineages",cex.main=1.2)
+  
+}
 
+## ----eval=FALSE---------------------------------------------------------------
+#  cutPhylo(tree,node=129,keep.lineage = TRUE)
+#  cutPhylo(tree,node=129,keep.lineage = FALSE)
 
+## ----echo=FALSE,fig.dim=c(6,3), message=FALSE, warning=FALSE, dpi=200, out.width='98%'----
+node<-129
+{
+  distNodes(tree,(Ntip(tree)+1))->dN
+  dN[match(node,rownames(dN)),2]->cutT
+  dN[,2]->dd
+  dd[which(dd>=cutT)]->ddcut
+  names(ddcut)->cutter
+  
+  ### Tips only ###
+  tree->tt
+  if(all(cutter%in%tree$tip.label)){
+    tt$edge.length[match(match(names(ddcut),tt$tip.label),tt$edge[,2])]<-
+      tt$edge.length[match(match(names(ddcut),tt$tip.label),tt$edge[,2])]-(ddcut-cutT)
+    #}
+  }else{
+    ### Tips and nodes ###
+    as.numeric(cutter[which(suppressWarnings(as.numeric(cutter))>Ntip(tree))])->cutn
+    i=1
+    while(i<=length(cutn)){
+      if(any(cutn%in%getDescendants(tree,cutn[i]))) cutn[-which(cutn%in%getDescendants(tree,cutn[i]))]->cutn
+      i=i+1
+    }
+    
+    tree->tt
+    i=1
+    while(i<=length(cutn)){
+      getMRCA(tt,tips(tree,cutn[i]))->nn
+      drop.clade(tt,tips(tt,nn))->tt
+      tt$tip.label[which(tt$tip.label=="NA")]<-paste("l",i,sep="")
+      i=i+1
+    }
+    
+    diag(vcv(tt))->times
+    if(any(times>cutT)){
+      times[which(times>cutT)]->times
+      tt$edge.length[match(match(names(times),tt$tip.label),tt$edge[,2])]<-
+        tt$edge.length[match(match(names(times),tt$tip.label),tt$edge[,2])]-(times-cutT)
+    }
+    
+  }
+  
+  tt->tt.node
+  par(mfrow=c(1,2),mar=c(1,0.1,1.2,0.1),mgp=c(3,0.1,0.05))
+  plot(tt,show.tip.label=FALSE)
+  tiplabels(frame="n",col="red",cex=.6,offset=0.5,
+            tip=which(!tt$tip.label%in%tree$tip.label),
+            text=tt$tip.label[which(!tt$tip.label%in%tree$tip.label)])
+  
+  axis(side=1,at=seq(2,23.5,5),labels=rev(c(10,15,20,25,30)),tck=-0.02,cex.axis=0.8)
+  title("cut at node: keeping lineages",cex.main=1.2)
+  
+   drop.tip(tt.node,which(!tt.node$tip.label%in%tree$tip.label))->tt.node
+   plot(tt.node,show.tip.label=FALSE)
+   axis(side=1,at=seq(2,23.5,5),labels=rev(c(10,15,20,25,30)),tck=-0.02,cex.axis=0.8)
+   title("cut at node: removing lineages",cex.main=1.2)
+  
+}
 
 

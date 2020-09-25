@@ -179,7 +179,8 @@ data("DataCetaceans")
 DataCetaceans$treecet->treecet # phylogenetic tree
 DataCetaceans$masscet->masscet # logged body mass data
 DataCetaceans$brainmasscet->brainmasscet # logged brain mass data
-DataCetaceans$aceMyst->aceMyst # known phenotypic value for the most recent common ancestor of Mysticeti
+DataCetaceans$aceMyst->aceMyst # known phenotypic value for the most recent 
+                               # common ancestor of Mysticeti
 
 require(geiger)
 par(mar=c(0,0,0,1))
@@ -194,53 +195,88 @@ rect(plotinfo$x.lim[2]+0.4,yran142[1],plotinfo$x.lim[2]+0.7,yran142[2],col="blue
 mtext(c("Mysticeti","Odontoceti"), side = 4,line=-0.5,at=c(sum(yran128)/2,sum(yran142)/2),
       cex=1.5,adj=0.5,col=c("red","blue"))
 
-# check the order of your data: best if data vectors
-# are sorted in the same order of the species on the phylogeny
-masscet[match(treecet$tip.label,names(masscet))]->masscet
-
-
-## Example 1: RRphylo by accounting for the effect of a coviariate
-# perform RRphylo on the vector of (log) body mass
-RRphylo(tree=treecet,y=masscet)->RRmasscet 
-
-# create the covariate vector: extract phenotypic character (i.e. log body mass) 
-# estimates at nodes from the RR object ($aces) and collate them 
-# to the vector of (log) body mass 
-c(RRmasscet$aces[,1],masscet)->masscov
-
-# perform RRphylo on the vector of (log) body mass by including 
-# the body mass itslef as covariate
-RRphylo(tree=treecet,y=masscet,cov=masscov)->RRcov
-
-
-## Example 2: RRphylo by setting values at internal nodes
-# Set the body mass of Mysticetes ancestor (Mystacodon selenensis) 
-# as known value at node
-RRphylo(tree=treecet,y=masscet,aces=aceMyst)->RRace
-
-
-## Example 3: multiple regression version of RRphylo
-# cross-reference the phylogenetic tree and body and brain mass data. Remove from both the tree and
-# vector of body sizes the species whose brain size is missing
-drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
-masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
-
-# check the order of your data: best if
-# data vectors (i.e. masscet and brainmasscet) are sorted
-# in the same order of the species on the phylogeny
-masscet.multi[match(treecet.multi$tip.label,names(masscet.multi))]->masscet.multi
-brainmasscet[match(treecet.multi$tip.label,names(brainmasscet))]->brainmasscet
-
-# perform RRphylo on tree and body mass data
-RRphylo(tree=treecet.multi,y=masscet.multi)->RRmass.multi
-
-# create the predictor vector: retrieve the ancestral character estimates 
-# of body size at internal nodes from the RR object ($aces) and collate them
-# to the vector of species' body sizes to create
-c(RRmass.multi$aces[,1],masscet.multi)->x1.mass
-
-# perform the multiple regression version of RRphylo by using
-# the brain size as variable and the body size as predictor
-RRphylo(treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
-
+## ----message=FALSE,warning=FALSE,eval=FALSE-----------------------------------
+#  # check the order of your data: best if data vectors
+#  # are sorted in the same order of the species on the phylogeny
+#  masscet[match(treecet$tip.label,names(masscet))]->masscet
+#  
+#  
+#  ## Example 1: RRphylo by accounting for the effect of a coviariate
+#  # perform RRphylo on the vector of (log) body mass
+#  RRphylo(tree=treecet,y=masscet)->RRmasscet
+#  
+#  # create the covariate vector: extract phenotypic character (i.e. log body mass)
+#  # estimates at nodes from the RR object ($aces) and collate them
+#  # to the vector of (log) body mass
+#  c(RRmasscet$aces[,1],masscet)->masscov
+#  
+#  # perform RRphylo on the vector of (log) body mass by including
+#  # the body mass itslef as covariate
+#  RRphylo(tree=treecet,y=masscet,cov=masscov)->RRcov
+#  
+#  
+#  ## Example 2: RRphylo by setting values at internal nodes
+#  # Set the body mass of Mysticetes ancestor (Mystacodon selenensis)
+#  # as known value at node
+#  RRphylo(tree=treecet,y=masscet,aces=aceMyst)->RRace
+#  
+#  
+#  ## Example 3: multiple regression version of RRphylo
+#  # cross-reference the phylogenetic tree and body and brain mass data.
+#  # Remove from both the tree and vector of body sizes the species
+#  # whose brain size is missing
+#  drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
+#  masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
+#  
+#  # check the order of your data: best if
+#  # data vectors (i.e. masscet and brainmasscet) are sorted
+#  # in the same order of the species on the phylogeny
+#  masscet.multi[match(treecet.multi$tip.label,names(masscet.multi))]->masscet.multi
+#  brainmasscet[match(treecet.multi$tip.label,names(brainmasscet))]->brainmasscet
+#  
+#  # perform RRphylo on tree and body mass data
+#  RRphylo(tree=treecet.multi,y=masscet.multi)->RRmass.multi
+#  
+#  # create the predictor vector: retrieve the ancestral character estimates
+#  # of body size at internal nodes from the RR object ($aces) and collate them
+#  # to the vector of species' body sizes to create
+#  c(RRmass.multi$aces[,1],masscet.multi)->x1.mass
+#  
+#  # perform the multiple regression version of RRphylo by using
+#  # the brain size as variable and the body size as predictor
+#  RRphylo(treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
+#  
+#  
+#  ## Example 4: categorical and multiple regression version of RRphylo with
+#  ## 2 additional predictors performed by setting values at internal nodes
+#  require(phytools)
+#  set.seed(1458)
+#  
+#  # generate a random tree and a BM phenotypic vector on it
+#  rtree(50)->tree
+#  fastBM(tree)->y
+#  
+#  # produce two variables to be used as additional predictors into the multiple
+#  # regression version of  RRphylo. One variable is continuous, the other is discrete.
+#  jitter(y)*10->y1
+#  rep(1,length(y))->y2
+#  y2[sample(1:50,20)]<-2
+#  names(y2)<-names(y)
+#  
+#  # perform RRphylo on y1 and y2 to retrieve ancestral state estimates at nodes
+#  # and create the x1 matrix
+#  c(RRphylo(tree,y1)$aces[,1],y1)->x1
+#  RRphylo(tree,y2)->RRcat # this is categorical RRphylo
+#  c(RRcat$aces[,1],y2)->x2
+#  cbind(x1,x2)->x1mat
+#  
+#  # create the phenotypes for y, y1, and y2 to be set as known values at internal nodes
+#  cbind(c(jitter(mean(y1[tips(tree,83)])),1),
+#       c(jitter(mean(y1[tips(tree,53)])),2))->acex
+#  c(jitter(mean(y[tips(tree,83)])),jitter(mean(y[tips(tree,53)])))->acesy
+#  names(acesy)<-rownames(acex)<-c(83,53)
+#  
+#  # perform RRphylo by specifying aces, x1, and aces.x1 arguments
+#  RRphylo(tree,y,aces=acesy,x1=x1mat,aces.x1 = acex)->RRcat.multi
+#  
 

@@ -26,6 +26,7 @@
 #'   according to the norm-2 vector of rates computed for each phenotype by
 #'   specifying the \code{RR} object.
 #' @export
+#' @seealso \href{../doc/RRphylo.html}{\code{RRphylo} vignette}
 #' @return Fitted pgls parameters and significance.
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
 #'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
@@ -75,6 +76,13 @@ PGLS_fossil<-function(modform,data,tree,RR=NULL)
          call. = FALSE)
   }
 
+
+  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
+    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
+    tree$tip.label<-tips(tree,(Ntip(tree)+1))
+    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
+    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+  }
 
   for(k in 1:length(data)){
     data[[k]]->sam

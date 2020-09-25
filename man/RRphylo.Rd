@@ -11,14 +11,16 @@ RRphylo(tree,y,cov=NULL,rootV=NULL,aces=NULL,x1=NULL,aces.x1=NULL,clus=0.5)
 fully dichotomous.}
 
 \item{y}{either a single vector variable or a multivariate dataset of class
-\sQuote{matrix}. In any case, \code{y} must be named.}
+\sQuote{matrix}. In any case, \code{y} must be named. In case of
+categorical variable, this sholud be supplied to the function as a numeric
+vector.}
 
 \item{cov}{the covariate to be indicated if its effect on the rates must be
 accounted for. In this case residuals of the covariate versus the rates are
 used as rates. \code{'cov'} must be as long as the number of nodes plus the
 number of tips of the tree, which can be obtained by running \code{RRphylo}
 on the covariate as well, and taking the vector of ancestral states and tip
-values to form the covariate, as in the example below.}
+values to form the covariate, as in the example below. See \href{../doc/RRphylo.html#covariate}{RRphylo vignette - covariate} for details.}
 
 \item{rootV}{phenotypic value (values if multivariate) at the tree root. If
 \code{rootV=NULL} the function 'learns' about the root value from the 10\%
@@ -28,17 +30,18 @@ distant tips).}
 
 \item{aces}{a named vector (or matrix if \code{y} is multivariate) of
 ancestral character values at nodes. Names correspond to the nodes in the
-tree.}
+tree. See \href{../doc/RRphylo.html#aces}{RRphylo vignette - aces} for details.}
 
-\item{x1}{the additional predictor to be indicated to perform the multiple
-version of \code{RRphylo}. \code{'x1'} vector must be as long as the number
-of nodes plus the number of tips of the tree, which can be obtained by
-running \code{RRphylo} on the predictor as well, and taking the vector of
-ancestral states and tip values to form the \code{x1}.}
+\item{x1}{the additional predictor(s) to be indicated to perform the multiple
+version of \code{RRphylo}. \code{'x1'} vector/matrix must be as long as the
+number of nodes plus the number of tips of the tree, which can be obtained
+by running \code{RRphylo} on the predictors (separately for each predictor)
+as well, and taking the vector of ancestral states and tip values to form
+the \code{x1}. See \href{../doc/RRphylo.html#predictor}{RRphylo vignette - predictor} for details.}
 
-\item{aces.x1}{a named vector of ancestral character values at nodes for
-\code{x1}. It must be indicated if both \code{aces} and \code{x1} are
-specified. Names correspond to the nodes in the tree.}
+\item{aces.x1}{a named vector/matrix of ancestral character values at nodes
+for \code{x1}. It must be indicated if both \code{aces} and \code{x1} are
+specified. Names/rownames correspond to the nodes in the tree.}
 
 \item{clus}{the proportion of clusters to be used in parallel computing (only
 if \code{y} is multivariate). To run the single-threaded version of
@@ -85,7 +88,7 @@ if \code{y} is multivariate). To run the single-threaded version of
   partial regression coefficient for \code{x1}.
 }
 \description{
-The function \code{RRphylo} (\cite{Castiglione et al. 2018})
+The function \code{\link{RRphylo}} (\cite{Castiglione et al. 2018})
   performs the phylogenetic ridge regression. It takes a tree and a vector of
   tip data (phenotypes) as entries, calculates the regularization factor,
   produces the matrices of tip to root (\code{\link{makeL}}), and node to
@@ -130,6 +133,31 @@ RRmass.multi$aces[,1]->acemass.multi
 c(acemass.multi,masscet.multi)->x1.mass
 
 RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RR
+
+# Case 5. Categorical and multiple "RRphylo" with 2 additional predictors
+library(phytools)
+library(geiger)
+
+set.seed(1458)
+rtree(50)->tree
+fastBM(tree)->y
+jitter(y)*10->y1
+rep(1,length(y))->y2
+y2[sample(1:50,20)]<-2
+names(y2)<-names(y)
+
+c(RRphylo(tree,y1)$aces[,1],y1)->x1
+
+RRphylo(tree,y2)->RRcat ### this is the RRphylo on the categorical variable
+c(RRcat$aces[,1],y2)->x2
+
+cbind(c(jitter(mean(y1[tips(tree,83)])),1),
+      c(jitter(mean(y1[tips(tree,53)])),2))->acex
+c(jitter(mean(y[tips(tree,83)])),jitter(mean(y[tips(tree,53)])))->acesy
+names(acesy)<-rownames(acex)<-c(83,53)
+
+RRphylo(tree,y,aces=acesy,x1=cbind(x1,x2),aces.x1 = acex)
+
     }
 }
 \references{

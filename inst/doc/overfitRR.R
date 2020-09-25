@@ -53,10 +53,11 @@ options(rmarkdown.html_vignette.check_title = FALSE)
 #  DataCetaceans$treecet->treecet # phylogenetic tree
 #  DataCetaceans$masscet->masscet # logged body mass data
 #  DataCetaceans$brainmasscet->brainmasscet # logged brain mass data
-#  DataCetaceans$aceMyst->aceMyst # known phenotypic value for the most recent common ancestor of Mysticeti
+#  DataCetaceans$aceMyst->aceMyst # known phenotypic value for the most recent
+#                                 # common ancestor of Mysticeti
 #  
-#  # cross-reference the phylogenetic tree and body and brain mass data. Remove from both the tree and
-#  # vector of body sizes the species whose brain size is missing
+#  # cross-reference the phylogenetic tree and body and brain mass data. Remove from
+#  # both the tree and vector of body sizes the species whose brain size is missing
 #  drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),
 #                                                 treecet$tip.label)])->treecet.multi
 #  masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
@@ -90,7 +91,8 @@ options(rmarkdown.html_vignette.check_title = FALSE)
 #  # perform RRphylo on Felids tree and data
 #  RRphylo(tree=treefel,y=PCscoresfel)->RRfel
 #  
-#  # search for morphologicl convergence between clades (automatic mode) and within the category
+#  # search for morphologicl convergence between clades (automatic mode)
+#  # and within the category
 #  search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9",
 #              foldername = tempdir())->SC.clade
 #  as.numeric(c(rownames(SC.clade[[1]])[1],as.numeric(as.character(SC.clade[[1]][1,1]))))->conv.nodes
