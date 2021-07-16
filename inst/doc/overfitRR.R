@@ -21,9 +21,9 @@ options(rmarkdown.html_vignette.check_title = FALSE)
 #  RRphylo(tree=treedino,y=massdino)->dinoRates
 #  
 #  # perform search.shift under both "clade" and "sparse" condition
-#  search.shift(RR=dinoRates, status.type= "clade",foldername=tempdir())->SSnode
+#  search.shift(RR=dinoRates, status.type= "clade",filename=tempdir())->SSnode
 #  search.shift(RR=dinoRates, status.type= "sparse", state=statedino,
-#               foldername=tempdir())->SSstate
+#               filename=tempdir())->SSstate
 #  
 #  # test the robustness of search.shift results
 #  overfitRR(RR=dinoRates,y=massdino,swap.args =list(si=0.2,si2=0.2),
@@ -41,7 +41,7 @@ options(rmarkdown.html_vignette.check_title = FALSE)
 #  # by specifying a clade to be tested
 #  RRphylo(tree=treeptero,y=log(massptero))->RRptero
 #  
-#  search.trend(RR=RRptero, y=log(massptero),node=143,foldername=tempdir(),
+#  search.trend(RR=RRptero, y=log(massptero),node=143,filename=tempdir(),
 #               cov=NULL,ConfInt=FALSE)->STnode
 #  
 #  # test the robustness of search.trend results
@@ -59,26 +59,42 @@ options(rmarkdown.html_vignette.check_title = FALSE)
 #  # cross-reference the phylogenetic tree and body and brain mass data. Remove from
 #  # both the tree and vector of body sizes the species whose brain size is missing
 #  drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),
-#                                                 treecet$tip.label)])->treecet.multi
-#  masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
+#                                                 treecet$tip.label)])->treecet1
+#  masscet[match(treecet1$tip.label,names(masscet))]->masscet1
 #  
 #  # peform RRphylo on the variable (body mass) to be used as additional predictor
-#  RRphylo(tree=treecet.multi,y=masscet.multi)->RRmass.multi
-#  RRmass.multi$aces[,1]->acemass.multi
+#  RRphylo(tree=treecet1,y=masscet1)->RRmass
+#  RRmass$aces[,1]->acemass1
 #  
 #  # create the predictor vector: retrieve the ancestral character estimates
 #  # of body size at internal nodes from the RR object ($aces) and collate them
 #  # to the vector of species' body sizes to create
-#  c(acemass.multi,masscet.multi)->x1.mass
+#  c(acemass1,masscet1)->x1.mass
 #  
 #  # peform RRphylo and search.trend on the brain mass
 #  # by using the body mass as additional predictor
-#  RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
+#  RRphylo(tree=treecet1,y=brainmasscet,x1=x1.mass)->RRmulti
 #  
-#  search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,foldername=tempdir())->STcet
+#  search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,filename=tempdir())->STcet
 #  
 #  # test the robustness of search.trend results
 #  overfitRR(RR=RRmulti,y=brainmasscet,trend.args = list(),x1=x1.mass,nsim=10)
+#  
+#  
+#  ### Testing PGLS_fossil
+#  # peform RRphylo on cetaceans brain mass
+#  RRphylo(tree=treecet1,y=brainmasscet)->RRbrain
+#  
+#  # perform PGLS_fossil by using the original tree
+#  PGLS_fossil(y~x,data=list(y=brainmasscet,x=masscet1),tree=treecet1)->pgls_noRR
+#  
+#  # perform PGLS_fossil rescaling the tree according to RRphylo rates
+#  PGLS_fossil(y~x,data=list(y=brainmasscet,x=masscet1),tree=RRbrain$tree,RR=RRbrain)->pgls_RR
+#  
+#  # test the robustness of PGLS_fossil results
+#  overfitRR(RR=RRbrain,y=brainmasscet,
+#            pgls.args=list(modform=y~x,data=list(y=brainmasscet,x=masscet1),tree=TRUE,RR=TRUE),
+#            nsim=10)
 #  
 #  
 #  ### Testing search.conv
@@ -94,11 +110,11 @@ options(rmarkdown.html_vignette.check_title = FALSE)
 #  # search for morphologicl convergence between clades (automatic mode)
 #  # and within the category
 #  search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9",
-#              foldername = tempdir())->SC.clade
+#              filename = tempdir())->SC.clade
 #  as.numeric(c(rownames(SC.clade[[1]])[1],as.numeric(as.character(SC.clade[[1]][1,1]))))->conv.nodes
 #  
 #  search.conv(tree=treefel, y=PCscoresfel, state=statefel,
-#              foldername = tempdir())->SC.state
+#              filename = tempdir())->SC.state
 #  
 #  # test the robustness of seach.conv results
 #  overfitRR(RR=RRfel, y=PCscoresfel,conv.args=

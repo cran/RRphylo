@@ -48,15 +48,26 @@
 #' fastBM(tree)->pred1
 #' fastBM(tree)->pred2
 #'
-#' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree)
+#' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree)->pgls_noRR
 #'
 #' RRphylo::RRphylo(tree,resp)->RR
-#' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree,RR=RR)
+#' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree,RR=RR)->pgls_RR
 #'
-#' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree)
+#' # To derive log-likelihood and AIC for PGLS_fossil outputs performed on univariate data
+#' # without including the RR object, the function AIC can be applied
+#' AIC(pgls_noRR)
+#'
+#' # For univarite with RR and multivariate models, the function "model.comparison"
+#' # from the package RRPP must be used.
+#' RRPP::model.comparison(pgls_RR,type = "logLik")
+#'
+#' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree)->pgls2_noRR
 #' cc<- 2/parallel::detectCores()
 #' RRphylo::RRphylo(tree,resp.multi,clus=cc)->RR
-#' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree,RR=RR)
+#' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree,RR=RR)->pgls2_RR
+#'
+#' RRPP::model.comparison(pgls2_noRR,pgls2_RR,type = "logLik")
+#'
 #' }
 
 PGLS_fossil<-function(modform,data,tree,RR=NULL)
@@ -112,10 +123,12 @@ PGLS_fossil<-function(modform,data,tree,RR=NULL)
   }else{
     tree->tree1
     abs(RR$rates[,1])->rts
+    sum(tree1$edge.length)->t1ele
     rts[-1]->rts
-    names(rts)[Nnode(tree):length(rts)]<-seq(1,Ntip(tree))
-    rts[match(tree$edge[,2],names(rts))]->rts
-    tree$edge.length*rts->tree1$edge.length
+    names(rts)[Nnode(tree1):length(rts)]<-seq(1,Ntip(tree1))
+    rts[match(tree1$edge[,2],names(rts))]->rts
+    tree1$edge.length*rts->tree1$edge.length
+    t1ele/sum(tree1$edge.length)*tree1$edge.length->tree1$edge.length
 
     data->gdf
     class(gdf)<-"geomorph.data.frame"

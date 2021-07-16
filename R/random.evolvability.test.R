@@ -79,7 +79,7 @@ random.evolvability.test<-function(tree,data,node.estimation=c("RR","BM"),aces=N
     tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
   }
 
-  if(!is.binary.tree(tree)){
+  if(!is.binary(tree)){
     tree->mutree
     multi2di(tree,random=FALSE)->tree
     tree$edge[which(tree$edge.length==0),2]->len0
@@ -105,7 +105,7 @@ random.evolvability.test<-function(tree,data,node.estimation=c("RR","BM"),aces=N
   if(!is.null(remn)) rec<-rec[-which(rownames(rec)%in%remn),]
   cv<-cov(t(rec))
 
-  if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1) else cl <- makeCluster(round((detectCores() * clus), 0))
+  if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
   registerDoParallel(cl)
   ddpcr::quiet(xx<-evolqg::MeanMatrixStatistics(cv,iterations=iterations,full.results = T,parallel = TRUE))
   xx$mean->means
@@ -135,7 +135,7 @@ random.evolvability.test<-function(tree,data,node.estimation=c("RR","BM"),aces=N
     if(!is.null(remn)) rec<-rec[-which(rownames(rec)%in%remn),]
     cv<-cov(t(rec))
 
-    if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1) else cl <- makeCluster(round((detectCores() * clus), 0))
+    if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
     registerDoParallel(cl)
     ddpcr::quiet(try(xx<-evolqg::MeanMatrixStatistics(cv,iterations=iterations,full.results = T,parallel = TRUE),silent = TRUE)->trytest)
     if(class(trytest)=="try-error") j=j else{

@@ -3,8 +3,8 @@
 #'   convergence between entire clades or species evolving under specific
 #'   states.
 #' @usage search.conv(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
-#'   min.dim=NULL,max.dim=NULL,min.dist=NULL,PGLSf=FALSE,declust=FALSE,nsim=1000,rsim=1000,
-#'    clus=.5,foldername=NULL)
+#'   min.dim=NULL,max.dim=NULL,min.dist=NULL,declust=FALSE,nsim=1000,rsim=1000,
+#'    clus=.5,foldername=NULL,filename)
 #' @param RR an object produced by \code{\link{RRphylo}}. This is not indicated
 #'   if convergence among states is tested.
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric or
@@ -48,8 +48,6 @@
 #'   \code{min.dist} should be "node8". If left unspecified, it automatically
 #'   searches for convergence between clades separated by a number of nodes
 #'   bigger than one tenth of the tree size.
-#' @param PGLSf has been deprecated; please see the argument \code{declust}
-#'   instead.
 #' @param declust if species under a given state (or a pair of states) to be
 #'   tested for convergence are phylogenetically closer than expected by chance,
 #'   trait similarity might depend on proximity rather than true convergence. In
@@ -62,7 +60,11 @@
 #'   distribution of theta values. It is set at 1000 by default.
 #' @param clus the proportion of clusters to be used in parallel computing. To
 #'   run the single-threaded version of \code{search.conv} set \code{clus} = 0.
-#' @param foldername the path of the folder where plots are to be found.
+#' @param foldername has been deprecated; please see the argument
+#'   \code{filename} instead.
+#' @param filename a character indicating the name of the pdf file and the path
+#'   where it is to be saved. If no path is indicated the file is stored in the
+#'   working directory
 #' @export
 #' @seealso \href{../doc/search.conv.html}{\code{search.conv} vignette}
 #' @importFrom grDevices chull
@@ -95,7 +97,7 @@
 #'   p.ang.state: the p-value computed for ang.state. \item p.ang.state.time:
 #'   the p-value computed for ang.state.time. }
 #' @details Regardless the case (either 'state' or 'clade'), the function stores
-#'   a plot into the folder specified by \code{foldername}. If convergence among
+#'   a plot into the folder specified by \code{filename}. If convergence among
 #'   clades is tested, the clade pair plotted corresponds to those clades with
 #'   the smallest \code{$average distance from group centroid}. The figure shows
 #'   the Euclidean distances computed between the MRCAs of the clades and the
@@ -135,19 +137,20 @@
 #' ## Case 1. searching convergence between clades
 #' # by setting min.dist as node distance
 #' search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9",
-#'             foldername = tempdir(),clus=cc)
+#'             filename = paste(tempdir(), "SCclade_nd", sep="/"),clus=cc)
 #' # by setting min.dist as time distance
 #' search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="time38",
-#'             foldername = tempdir(),clus=cc)
+#'             filename = paste(tempdir(), "SCclade_td", sep="/"),clus=cc)
 #'
 #' ## Case 2. searching convergence within a single state
 #' search.conv(tree=treefel, y=PCscoresfel, state=statefel,declust=TRUE,
-#'             foldername = tempdir(),clus=cc)
+#'             filename = paste(tempdir(), "SCstate", sep="/"),clus=cc)
 #'   }
 
 search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
-                      min.dim=NULL,max.dim=NULL,min.dist=NULL,PGLSf=FALSE,
-                      declust=FALSE,nsim=1000,rsim=1000,clus=.5,foldername=NULL)
+                      min.dim=NULL,max.dim=NULL,min.dist=NULL,
+                      declust=FALSE,nsim=1000,rsim=1000,clus=.5,foldername=NULL,
+                      filename)
 {
   # require(ape)
   # require(geiger)
@@ -181,10 +184,9 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
          call. = FALSE)
   }
 
-  if(!missing(PGLSf)){
-    warning("argument PGLSf is deprecated; please use declust instead.",
+  if(!missing(foldername)){
+    stop("argument foldername is deprecated; please use filename instead.",
             call. = FALSE)
-    PGLSf->declust
   }
 
   phylo.run.test<-function(tree,state,st,nsim=100){
@@ -298,7 +300,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       RRaces[match(nod,rownames(RR$aces)),]->aces
 
       res<-list()
-      if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1) else cl <- makeCluster(round((detectCores() * clus), 0))
+      if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else
+        cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
       registerDoParallel(cl)
       res <- foreach(i = 1:(length(nod)-1),
                      .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
@@ -439,7 +442,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       colnames(AD)<-c("ang.by.dist","dist","n1","n2","combo")
 
       res.ran <- list()
-      cl <- makeCluster(round((detectCores() * clus), 0))
+      if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else
+        cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
       registerDoParallel(cl)
       res.ran <- foreach(k = 1:nsim,
                          .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
@@ -651,7 +655,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       RRaces[match(c(nod,mean.sel),rownames(RR$aces)),]->aces
 
       res<-list()
-      cl <- makeCluster(round((detectCores() * clus), 0))
+      if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else
+        cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
       registerDoParallel(cl)
       res <- foreach(i = 1:length(nod),
                      .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
@@ -769,7 +774,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
 
       res.ran <- list()
-      cl <- makeCluster(round((detectCores() * clus), 0))
+      if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else
+        cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
       registerDoParallel(cl)
       res.ran <- foreach(k = 1:nsim,
                          .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
@@ -990,8 +996,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     dist.ace[match(nn[1],colnames(dist.ace)),][which(names(dist.ace[match(nn[1],colnames(dist.ace)),])%in%nn[2])]->dist.nod
 
 
-    pdf(file = paste(foldername, "convergence plot.pdf",
-                     sep = "/"))
+    pdf(file = paste(filename,".pdf",sep=""))
 
     layout(matrix(c(1,3,2,4),ncol=2,nrow=2, byrow = TRUE),widths = c(1,2))
 
@@ -1075,7 +1080,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       c(mean(aa),mean(aa/dt),vs1,vs2)->ang.by.state
 
 
-      cl <- makeCluster(round((detectCores() * clus), 0))
+      if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else
+        cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
       registerDoParallel(cl)
       ang.by.stateR<- foreach(j = 1:nsim,.combine = 'rbind') %dopar%
         {
@@ -1111,8 +1117,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
 
 
-      pdf(file = paste(foldername, "convergence plot.pdf",
-                       sep = "/"))
+      pdf(file = paste(filename,".pdf",sep=""))
 
       mat<-matrix(c(1,2),ncol=1,nrow=2,byrow=TRUE)
       ht<-c(1,1)
@@ -1240,7 +1245,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       data.frame(state1=t(stcomb1)[,1],state2=t(stcomb1)[,2],ang.state=ang.by.state[,1],ang.state.time=ang.by.state[,2],size.v1=ang.by.state[,3],size.v2=ang.by.state[,4])->ang2state
 
       ang2stateR <- list()
-      cl <- makeCluster(round((detectCores() * clus), 0))
+      if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else
+        cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
       registerDoParallel(cl)
       ang2stateR <- foreach(j = 1:nsim) %dopar%
         {
@@ -1285,8 +1291,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       data.frame(bbb,l1=bbb[,1]/2,l2=360-(bbb[,1]/2),rlim1=bbb[,2]/2,
                  rlim2=360-bbb[,2]/2,p=res.tot[,8])->ccc
 
-      pdf(file = paste(foldername, "convergence plot for different states.pdf",
-                       sep = "/"))
+      pdf(file = paste(filename,".pdf",sep=""))
 
       if(nrow(res.tot)==1) {
         mat<-matrix(c(1,2),ncol=1,nrow=2,byrow=TRUE)

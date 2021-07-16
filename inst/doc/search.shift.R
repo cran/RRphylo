@@ -577,8 +577,8 @@ legend("topleft",legend=c("B","BQ","F","Q"),pt.bg =unique(colo)[c(1,3,4,2)],pch=
 #  
 #  # search for clades showing significant shifts in mass specific evolutionary rates
 #  # (i.e. using the log body mass itself as a covariate)
-#  search.shift(RRdinomass, status.type= "clade",cov=lmass,foldername=getwd())->SSauto
+#  search.shift(RRdinomass, status.type= "clade",cov=lmass,filename="ss automatic")->SSauto
 #  
 #  # search for shifts in mass specific evolutionary rates pertaining different locomotory types.
-#  search.shift(RRdinomass, status.type= "sparse", state=statedino,cov=lmass, foldername=getwd())->SSstate
+#  search.shift(RRdinomass, status.type= "sparse", state=statedino,cov=lmass, filename="ss state")->SSstate
 

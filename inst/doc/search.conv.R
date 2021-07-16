@@ -566,7 +566,7 @@ legend("bottomright",legend=c("Clade 18","Clade 24","mrca-18 to mrca-24 distance
 
 ## ----message=FALSE, warning=FALSE,eval=FALSE----------------------------------
 #  search.conv(RR=RR,y=y,min.dim=3,max.dim=4,nsim=100,rsim=100,
-#              clus=2/parallel::detectCores(),foldername=getwd())->SC
+#              clus=2/parallel::detectCores(),filename="convergence plot")->SC
 
 ## ----message=FALSE, warning=FALSE,echo=FALSE----------------------------------
 pdf.options(useDingbats=FALSE)
@@ -1224,14 +1224,14 @@ legend("bottomright",legend=c("State a","State b","nostate"),pch=21,pt.cex=2,
 
 
 ## ----message=FALSE, warning=FALSE,eval=FALSE----------------------------------
-#  search.conv(tree=tree,y=y,state=state,nsim=100,
-#              clus=2/parallel::detectCores(),foldername=getwd())->SC
+#  search.conv(tree=tree,y=y,state=state,nsim=100,clus=2/parallel::detectCores(),
+#              filename="convergence plot states")->SC
 
 ## ----message=FALSE, warning=FALSE,echo=FALSE----------------------------------
 pdf.options(useDingbats=FALSE)
 # search.conv(tree=tree,y=y,state=state,nsim=100,
 #             clus=2/parallel::detectCores(),foldername=getwd())->SC
-tree=tree;y=y;state=state;nsim=100;foldername=getwd()
+tree=tree;y=y;state=state;nsim=100
 {
   phylo.run.test<-function(tree,state,st,nsim=100){
     cophenetic.phylo(tree)->cop
@@ -1385,8 +1385,7 @@ tree=tree;y=y;state=state;nsim=100;foldername=getwd()
   data.frame(bbb,l1=bbb[,1]/2,l2=360-(bbb[,1]/2),rlim1=bbb[,2]/2,
              rlim2=360-bbb[,2]/2,p=res.tot[,8])->ccc
   
-  pdf(file = paste(foldername, "convergence plot for different states.pdf",
-                   sep = "/"))
+  pdf(file = "convergence plot states.pdf")
   
   if(nrow(res.tot)==1) {
     mat<-matrix(c(1,2),ncol=1,nrow=2,byrow=TRUE)
@@ -1461,9 +1460,9 @@ knitr::kable(SC,digits=3,align="c") %>%
 
 ## ----echo=FALSE,fig.align="center",message=FALSE,warning=FALSE, out.width='98%'----
 require(pdftools)
-ddpcr::quiet(pdf_convert(paste(getwd(),"/convergence plot for different states.pdf",sep=""), format = "png",dpi=300))
-ddpcr::quiet(file.remove(paste(getwd(),"/convergence plot for different states.pdf",sep="")))
-knitr::include_graphics("convergence plot for different states_1.png")
+ddpcr::quiet(pdf_convert(paste(getwd(),"/convergence plot states.pdf",sep=""), format = "png",dpi=300))
+ddpcr::quiet(file.remove(paste(getwd(),"/convergence plot states.pdf",sep="")))
+knitr::include_graphics("convergence plot states_1.png")
 
 ## ----fig.width=5,fig.height=5,fig.align="center",message=FALSE,warning=FALSE,out.width='90%',dpi=200----
 # load the RRphylo example dataset including Felids tree and data
@@ -1487,10 +1486,10 @@ legend("bottomleft",legend=c("Sabertooths","nostate"),pch=21,pt.cex=1.5,
 #  ## Example 1: search for morphological convergence between clades (automatic mode)
 #  ## by setting 9 nodes as minimum distance between the clades to be tested
 #  search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9",
-#              foldername = tempdir())->SC.clade
+#              filename = "sc clade")->SC.clade
 #  
 #  ## Example 2: search for morphological convergence within sabertoothed species
 #  search.conv(tree=treefel, y=PCscoresfel, state=statefel,
-#              foldername = tempdir())->SC.state
+#              filename = "sc state")->SC.state
 #  
 

@@ -47,7 +47,7 @@
 #'   if \code{y} is multivariate). To run the single-threaded version of
 #'   \code{RRphylo} set \code{clus} = 0.
 #' @export
-#' @importFrom ape multi2di Ntip is.binary.tree Nnode dist.nodes drop.tip
+#' @importFrom ape multi2di Ntip is.binary Nnode dist.nodes drop.tip
 #'   subtrees nodelabels
 #' @importFrom stats dist lm residuals weighted.mean
 #' @importFrom stats4 mle
@@ -238,7 +238,7 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
     tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
   }
 
-  if (is.binary.tree(tree))
+  if (is.binary(tree))
     t <- tree else t <- multi2di(tree, random = FALSE)
 
   if(is.null(nrow(y))) y <- treedata(tree, y, sort = TRUE)[[2]][,1] else y <- treedata(tree, y, sort = TRUE)[[2]]
@@ -248,7 +248,7 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
 
   if (is.null(rootV)) { #### rootV ####
     if (length(y) > Ntip(t)) { #### rootV multi ####
-      if (is.binary.tree(tree) == FALSE)
+      if (is.binary(tree) == FALSE)
         u <- data.frame(y, (1/diag(vcv(tree))^2))
       else u <- data.frame(y, (1/diag(vcv(t))^2))
       u <- u[order(u[, dim(u)[2]], decreasing = TRUE),
@@ -257,7 +257,7 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
       rootV <- apply(u1[, 1:dim(y)[2]], 2, function(x) weighted.mean(x,
                                                                      u1[, dim(u1)[2]]))
     }else { #### rootV uni ####
-      if (is.binary.tree(tree) == FALSE)
+      if (is.binary(tree) == FALSE)
         u <- data.frame(y, (1/diag(vcv(tree))^2)) else u <- data.frame(y, (1/diag(vcv(t))^2))
         u <- u[order(u[, 2], decreasing = TRUE), ]
         u1 <- u[1:(dim(u)[1] * 0.1), ]
@@ -268,7 +268,7 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
 
   }
 
-  if(is.null(x1)==FALSE){ #### multiple Ridge Regression ####
+  if(!is.null(x1)){ #### multiple Ridge Regression ####
     # x1[-match(t$tip.label,names(x1))]->ace1
     # x1[match(t$tip.label,names(x1))]->y1
     if(is.null(nrow(x1))) x1<-as.matrix(x1)
@@ -277,14 +277,13 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
   }
 
 
-
   if (!is.null(aces)) { #### phenotypes at internal nodes ####
     L <- makeL(t)
     aceV <- aces
     if (length(y) > Ntip(t)) { #### aces multi ####
       if (is.null(rownames(aceV)))
         stop("The matrix of aces needs to be named")
-      if (is.binary.tree(tree) == FALSE) {
+      if (is.binary(tree) == FALSE) {
         ac <- array()
         for (i in 1:nrow(aceV)) {
           ac[i] <- getMRCA(t, tips(tree, rownames(aceV)[i]))
@@ -312,20 +311,21 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
         treeN$edge.length[which(treeN$edge[,2]==nn)]->edlen
         if(edlen<=0.001) edlen/10->pp else 0.001->pp
         treeN <- bind.tip(treeN, tip.label = paste("nod",N[i], sep = ""),
-                          edge.length = 0, where = nn,position = edlen)
+                          edge.length = 0, where = nn,position = pp)
         npos <- which(treeN$tip.label == paste("nod", N[i], sep = ""))
         if (npos == 1) ynew <- rbind(P[i, ], ynew)
         if (npos == nrow(ynew) + 1) ynew <- rbind(ynew, P[i, ]) else {
-          if (npos > 1 & npos < (nrow(ynew) + 1)) ynew <- rbind(ynew[1:(npos - 1), ], unname(P[i,]), ynew[npos:nrow(ynew), ])
+          if (npos > 1 & npos < (nrow(ynew) + 1)) ynew <- rbind(ynew[1:(npos - 1), ], unname(P[i,]), ynew[npos:nrow(ynew),,drop=FALSE])
         }
 
-        if(is.null(x1)==FALSE){
+        if(!is.null(x1)){
           if (npos == 1) y1new <- rbind(Px1[,i], y1new)
 
-          if (npos == length(ynew) + 1)  y1new <- rbind(y1new, Px1[,i]) else {
-            if (npos > 1 & npos < (length(ynew) + 1)) y1new <- rbind(y1new[1:(npos - 1), ,drop=FALSE], unname(Px1[,i]), y1new[npos:nrow(y1new),,drop=FALSE])
+          if (npos == nrow(y1new) + 1)  y1new <- rbind(y1new, Px1[,i]) else {
+            if (npos > 1 & npos < (nrow(y1new) + 1)) y1new <- rbind(y1new[1:(npos - 1), ,drop=FALSE], unname(Px1[,i]), y1new[npos:nrow(y1new),,drop=FALSE])
           }
         }
+
         rownames(ynew)[npos] <- paste("nod", N[i], sep = "")
         if(is.null(x1)==FALSE) rownames(y1new)[npos] <- paste("nod", N[i], sep = "")
         i = i + 1
@@ -355,7 +355,7 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
     } else { #### aces uni ####
       if (is.null(names(aceV)))
         stop("The vector of aces needs to be named")
-      if (is.binary.tree(tree) == FALSE) {
+      if (is.binary(tree) == FALSE) {
         ac <- array()
         for (i in 1:length(aceV)) {
           ac[i] <- getMRCA(t, tips(tree, names(aceV)[i]))
@@ -381,7 +381,7 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
         treeN$edge.length[which(treeN$edge[,2]==nn)]->edlen
         if(edlen<=0.001) edlen/10->pp else 0.001->pp
         treeN <- bind.tip(treeN, tip.label = paste("nod",N[i], sep = ""),
-                          edge.length = 0, where = nn,position = edlen)
+                          edge.length = 0, where = nn,position = pp)
         npos <- which(treeN$tip.label == paste("nod", N[i], sep = ""))
         if (npos == 1) ynew <- c(P[i], ynew)
 
@@ -397,7 +397,7 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
           }
         }
         names(ynew)[npos] <- paste("nod", N[i], sep = "")
-        if(is.null(x1)==FALSE) rownames(y1new)[npos] <- paste("nod", N[i], sep = "")
+        if(!is.null(x1)) rownames(y1new)[npos] <- paste("nod", N[i], sep = "")
         i = i + 1
       }
 
@@ -437,20 +437,16 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
     k <- dim(y)[2]
     y.real <- y
     rv.real <- rootV
-    res <- list()
-    if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1) else cl <- makeCluster(round((detectCores() * clus), 0))
+    # res <- list()
+    if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else
+      cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
     registerDoParallel(cl)
     res <- foreach(i = 1:k, .packages = c("stats4", "ape")) %dopar% {
       #for(i in 1:k){
       gc()
       rootV <- rv.real[i]
       y <- y.real[, i]
-      if(is.null(x1)==FALSE){ #### multiple Ridge Regression ####
-
-        h <- mle(optLmultiple, start = list(lambda = 1), method = "L-BFGS-B",
-                 upper = 10, lower = 0.001)
-        h@coef->lambda
-
+      if(!is.null(x1)){ #### multiple Ridge Regression ####
         h <- mle(optLmultiple, start = list(lambda = 1), method = "L-BFGS-B",
                  upper = 10, lower = 0.001)
         h@coef->lambda
@@ -467,7 +463,7 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
         betas[(length(betas)+1-ncol(y1)):length(betas)]->x1.rate
         betas[1:(length(betas)-ncol(y1)),,drop=FALSE]->betas
         colnames(betas)<-NULL
-        res[[i]] <- list(aceRR, betas, y.hat, lambda,x1.rate)
+        list(aceRR, betas, y.hat, lambda,x1.rate)
 
       }else{
 
@@ -478,7 +474,8 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
                     t(L)) %*% (as.matrix(y) - rootV)
         aceRR <- (L1 %*% betas[1:Nnode(t), ]) + rootV
         y.hat <- (L %*% betas) + rootV
-        res[[i]] <- list(aceRR, betas, y.hat, lambda)
+        #res[[i]] <-
+        list(aceRR, betas, y.hat, lambda)
       }
     }
     stopCluster(cl)
@@ -501,7 +498,7 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
 
   }else { #### Ridge Regression univariate ####
 
-    if(is.null(x1)==FALSE){ #### multiple Ridge Regression ####
+    if(!is.null(x1)){ #### multiple Ridge Regression ####
 
       h <- mle(optLmultiple, start = list(lambda = 1), method = "L-BFGS-B",
                upper = 10, lower = 0.001)
@@ -532,7 +529,7 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
     }
   }
 
-  if (is.null(aces) == FALSE) {
+  if (!is.null(aces)) {
     tip.rem <- paste("nod", N, sep = "")
     nod.rem <- array()
     for (i in 1:length(N)) {

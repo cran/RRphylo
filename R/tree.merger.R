@@ -1,8 +1,8 @@
 #' @title Fast addition of tips and clades on an existing tree
 #' @description The function attaches new tips and/or clades derived from a
 #'   source phylogeny to a pre-existing backbone tree.
-#' @usage tree.merger(backbone,data,source.tree=NULL,tip.ages = NULL, node.ages
-#'   = NULL,min.branch=NULL,plot=TRUE,filename=NULL)
+#' @usage tree.merger(backbone,data,source.tree=NULL,age.offset=NULL,tip.ages =
+#'   NULL, node.ages = NULL,min.branch=NULL,plot=TRUE,filename=NULL)
 #' @param backbone the backbone tree to attach tips/clades on.
 #' @param data a dataset including as columns:\enumerate{\item bind = the
 #'   tips/clades to be attached; \item reference = the reference tip or clade
@@ -11,6 +11,11 @@
 #'   explanations.
 #' @param source.tree the tree where 'bind' clades are to be extracted from. If
 #'   no clade has to be attached, it can be left unspecified.
+#' @param age.offset if the most recent age (i.e. the maximum distance from the
+#'   tree root) differs between the source and the backbone trees, the
+#'   “age.offset” is the difference between them in this exact order (source
+#'   minus backbone). It is positive when the backbone tree attains younger age
+#'   than the source tree, and vice-versa.
 #' @param tip.ages as in \code{\link{scaleTree}}, a named vector including the
 #'   ages (i.e. the time distance from the youngest tip within the tree) of the
 #'   tips. If unspecified, the function assumes all the tips on the backbone
@@ -35,17 +40,20 @@
 #' @author Silvia Castiglione, Carmela Serio, Pasquale Raia
 #' @details The function attaches tips and/or clades from the \code{source} tree
 #'   to the \code{backbone} tree according to the \code{data} object. Within the
-#'   latter, a clade, either to be binded or to be the reference, must be
+#'   latter, a clade, either to be bound or to be the reference, must be
 #'   indicated by collating the names of the two phylogenetically furthest tips
 #'   belonging to it, separated by a "-". Duplicated 'bind' produce error.
 #'   Tips/clades set to be attached to the same 'reference' are considered to
 #'   represent a polytomy. Tips set as 'bind' which are already on the backbone
 #'   tree are removed from the latter and placed according to the 'reference'.
-#'   See examples and \href{../doc/Tree-Manipulation.html#tree.merger.html}{vignette} for
+#'   See examples and
+#'   \href{../doc/Tree-Manipulation.html#tree.merger.html}{vignette} for
 #'   clarifications.
 #' @export
-#' @seealso \href{../doc/Tree-Manipulation.html#tree.merger.html}{\code{tree.merger} vignette};
-#'   \href{../doc/Tree-Manipulation.html#scaleTree}{\code{scaleTree} vignette};
+#' @seealso
+#' \href{../doc/Tree-Manipulation.html#tree.merger.html}{\code{tree.merger}
+#' vignette}; \href{../doc/Tree-Manipulation.html#scaleTree}{\code{scaleTree}
+#' vignette};
 #' @references aaa
 #' @examples
 #'  \dontrun{
@@ -112,7 +120,8 @@
 #'              tip.ages=tip.ages,node.ages = node.ages, plot=TRUE)->treeM
 #'    }
 
-tree.merger<-function(backbone,data,source.tree=NULL,tip.ages = NULL, node.ages = NULL,min.branch=NULL,plot=TRUE,filename=NULL){
+tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
+                      tip.ages = NULL, node.ages = NULL,min.branch=NULL,plot=TRUE,filename=NULL){
   # require(ape)
   # require(phytools)
   # require(geiger)
@@ -133,6 +142,12 @@ tree.merger<-function(backbone,data,source.tree=NULL,tip.ages = NULL, node.ages 
   source.tree->tree2
   max(diag(vcv(tree)))->H
   H-diag(vcv(tree))->ages
+
+  if(!is.null(age.offset)&&age.offset<0){
+    ages+abs(age.offset)->ages
+    H+abs(age.offset)->Hset
+  }else H->Hset
+
   if(is.null(min.branch)) min(tree$edge.length)->min.branch
 
   ### Check data ###
@@ -288,20 +303,29 @@ tree.merger<-function(backbone,data,source.tree=NULL,tip.ages = NULL, node.ages 
 
       if(isTRUE(dat$poly[k])){
         0->pos.ref
-        if((max(diag(vcv(cla)))+max(diag(vcv(cla)))/10)>(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]))
-          rescale(cla,"depth",(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]+max(diag(vcv(cla)))/10))->cla
+        if(where.ref==(Ntip(tree)+1)&&(max(diag(vcv(cla)))+max(diag(vcv(cla)))/10)>H)
+          rescale(cla,"depth",(H+max(diag(vcv(cla)))/10))->cla else
+            if(where.ref!=(Ntip(tree)+1)&(max(diag(vcv(cla)))+max(diag(vcv(cla)))/10)>(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]))
+              rescale(cla,"depth",(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]+max(diag(vcv(cla)))/10))->cla
         cla$root.edge<-max(diag(vcv(cla)))/10
       }else {
-        if((max(diag(vcv(cla)))+br.len/2)>(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),1])){
-          rescale(cla,"depth",(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]))->cla
-          pos.ref<-br.len/2
-        }else if((max(diag(vcv(cla)))+br.len/2)>(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]))
-          (max(diag(vcv(cla)))+br.len/2)-(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2])->pos.ref else br.len/2->pos.ref
+        if(where.ref==(Ntip(tree)+1)) br.len/2->pos.ref else {
+          max(diag(vcv(cla)))+br.len/2->Hcla
+          if((H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2])<H/1000){
+            rescale(cla,"depth",br.len/4)->cla
+            pos.ref<-br.len-br.len/4
+          }else{
+            if(Hcla>(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),1])){
+              rescale(cla,"depth",(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]))->cla
+              pos.ref<-br.len/2
+            }else if(Hcla>(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]))
+              (max(diag(vcv(cla)))+br.len/2)-(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2])->pos.ref else br.len/2->pos.ref
+          }
+        }
         cla$root.edge<-br.len/2
       }
       bind.tree(tree,cla,where=where.ref,position = pos.ref)->tree
     }
-
   }
 
   ### tips calibration ages ###
@@ -329,7 +353,7 @@ tree.merger<-function(backbone,data,source.tree=NULL,tip.ages = NULL, node.ages 
 
   ### age original root ###
   if(!getMRCA(tree,names(ages))%in%names(node.ages)){
-    node.ages<-c(node.ages,H)
+    node.ages<-c(node.ages,Hset)
     names(node.ages)[length(node.ages)]<-getMRCA(tree,names(ages))
   }
 
@@ -343,6 +367,7 @@ tree.merger<-function(backbone,data,source.tree=NULL,tip.ages = NULL, node.ages 
       dndes
     }))->ages.fix
 
+    if(!is.null(age.offset)&&age.offset>0) ages.fix+age.offset->ages.fix
     sapply(names(ages.fix),function(x) getMRCA(tree,tips(tree2,as.numeric(x))))->names(ages.fix)
 
     if(any(!names(ages.fix)%in%names(node.ages)))
@@ -360,14 +385,16 @@ tree.merger<-function(backbone,data,source.tree=NULL,tip.ages = NULL, node.ages 
 
       c(which(tree.plot$tip.label%in%dat$bind[which(dat$bind.type==1)]),unlist(cla.plot))->all.plot
       colo<-rep(scales::hue_pal()(2)[2],nrow(tree.plot$edge))
-      colo[which(tree.plot$edge[,2]%in%all.plot)]<-scales::hue_pal()(2)[1]
+      colo[match(all.plot,tree.plot$edge[,2])]<-scales::hue_pal()(2)[1]
       names(colo)<-tree.plot$edge[,2]
+      colo[which(as.numeric(names(colo))<=Ntip(tree.plot))]->colo.tips
       tree.plot$tip.label[which(!tree.plot$tip.label%in%unique(c(unlist(strsplit(dat$bind,"-")),unlist(strsplit(dat$reference,"-")))))]<-" "
+      names(colo.tips)<-tree.plot$tip.label[as.numeric(names(colo.tips))]
 
       if(!is.null(filename)){
         pdf(file=paste(filename,".pdf",sep=""))
         if(Ntip(tree.plot)<100)
-          plot(tree.plot,edge.color=colo,cex=.6,tip.color=colo[which(tree.plot$edge[,2]<=Ntip(tree.plot))]) else
+          plot(tree.plot,edge.color=colo,cex=.6,tip.color=colo.tips[match(tree.plot$tip.label,names(colo.tips))]) else
             plot(tree.plot,edge.color=colo,type="fan",cex=.6,tip.color=colo[which(tree.plot$edge[,2]<=Ntip(tree.plot))])
         dev.off()
       }
@@ -396,3 +423,4 @@ tree.merger<-function(backbone,data,source.tree=NULL,tip.ages = NULL, node.ages 
 
   return(tree.final)
 }
+
