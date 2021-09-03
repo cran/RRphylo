@@ -1,4 +1,10 @@
 ## ---- include = FALSE---------------------------------------------------------
+if (!requireNamespace("rmarkdown", quietly = TRUE) ||
+     !rmarkdown::pandoc_available()) {
+   warning(call. = FALSE, "Pandoc not found, the vignettes is not built")
+   knitr::knit_exit()
+}
+
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"

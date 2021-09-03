@@ -150,24 +150,25 @@
 #' RRphylo(tree=treeptero,y=log(massptero))->RRptero
 #'
 #' # Case 1 search.shift under both "clade" and "sparse" condition
-#' search.shift(RR=dinoRates, status.type= "clade",filename=tempdir())->SSnode
+#' search.shift(RR=dinoRates, status.type= "clade",
+#'              filename=paste(tempdir(),"SSnode",sep="/"))->SSnode
 #' search.shift(RR=dinoRates, status.type= "sparse", state=statedino,
-#'              filename=tempdir())->SSstate
+#'              filename=paste(tempdir(),"SSstate",sep="/"))->SSstate
 #'
 #' overfitRR(RR=dinoRates,y=massdino,swap.args =list(si=0.2,si2=0.2),
 #'           shift.args = list(node=rownames(SSnode$single.clades),state=statedino),
 #'           nsim=10,clus=cc)->orr.ss
 #'
 #' # Case 2 search.trend on the entire tree
-#' search.trend(RR=RRptero, y=log(massptero),nsim=100,clus=cc,
-#'              filename=tempdir(),cov=NULL,ConfInt=FALSE,node=NULL)->STtree
+#' search.trend(RR=RRptero, y=log(massptero),nsim=100,clus=cc,cov=NULL,node=NULL,
+#'              filename=paste(tempdir(),"STtree",sep="/"),ConfInt=FALSE)->STtree
 #'
 #' overfitRR(RR=RRptero,y=log(massptero),swap.args =list(si=0.2,si2=0.2),
 #'           trend.args = list(),nsim=10,clus=cc)->orr.st1
 #'
-#' # Case 3 search.trend at specified nodes
-#' search.trend(RR=RRptero, y=log(massptero),node=143,clus=cc,filename=tempdir(),
-#'              cov=NULL,ConfInt=FALSE)->STnode
+#' # Case 3 search.trend at specified nodescov=NULL,
+#' search.trend(RR=RRptero, y=log(massptero),node=143,clus=cc,
+#'              filename=paste(tempdir(),"STtree",sep="/"),ConfInt=FALSE)->STnode
 #'
 #' overfitRR(RR=RRptero,y=log(massptero),
 #'           trend.args = list(node=143),nsim=10,clus=cc)->orr.st2
@@ -188,12 +189,13 @@
 #' c(acemass.multi,masscet.multi)->x1.mass
 #'
 #' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
-#' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,filename=tempdir())->STcet
+#' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc,
+#'              filename=paste(tempdir(),"STtree",sep="/"))->STcet
 #' overfitRR(RR=RRmulti,y=brainmasscet,trend.args = list(),
 #'           x1=x1.mass,nsim=10,clus=cc)->orr.st3
 #'
 #' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,x1.residuals=TRUE,
-#'              clus=cc,filename=tempdir())->STcet.resi
+#'              clus=cc,filename=paste(tempdir(),"STcet.resi",sep="/"))->STcet.resi
 #' overfitRR(RR=RRmulti,y=brainmasscet,trend.args = list(x1.residuals=TRUE),
 #'           x1=x1.mass,nsim=10,clus=cc)->orr.st4
 #'
@@ -205,7 +207,7 @@
 #'
 #' RRphylo(tree=treefel,y=PCscoresfel,clus=cc)->RRfel
 #' search.conv(RR=RRfel, y=PCscoresfel, min.dim=5, min.dist="node9",
-#'             filename = tempdir(),clus=cc)->SC.clade
+#'             filename = paste(tempdir(),"SC.clade",sep="/"),clus=cc)->SC.clade
 #' as.numeric(c(rownames(SC.clade[[1]])[1],as.numeric(as.character(SC.clade[[1]][1,1]))))->conv.nodes
 #'
 #' overfitRR(RR=RRfel, y=PCscoresfel,conv.args =
@@ -580,8 +582,11 @@ overfitRR<-function(RR,y,
     if(length(y)>Ntip(tree)){ #### Multivariate ####
       phen.trend<-rate.trend<-list()
       for(j in 1:(ncol(y)+1)){
-        as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",3),function(x) x[j,]))[,c(1,3)])->pr#->phen.ran[[j]]
-        as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",4),function(x) x[j,]))[,c(1,3)])->rr#->rat.ran[[j]]
+        # as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",3),function(x) x[j,]))[,c(1,3)])->pr#->phen.ran[[j]]
+        # as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",4),function(x) x[j,]))[,c(1,3)])->rr#->rat.ran[[j]]
+
+        as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",2),function(x) x[j,]))[,c(1,3)])->pr#->phen.ran[[j]]
+        as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",3),function(x) x[j,]))[,c(1,3)])->rr#->rat.ran[[j]]
 
         c(length(which(pr$slope>0&pr$p.random<=0.05))/nsim,
           length(which(pr$slope<0&pr$p.random<=0.05))/nsim)->phen.trend[[j]]
@@ -603,8 +608,11 @@ overfitRR<-function(RR,y,
       list(phen.trend,rate.trend)->p.trend
       names(p.trend)<-c("phenotype","rates")
     }else{ #### Univariate ####
-      as.data.frame(do.call(rbind,lapply(STcut,"[[",3))[,c(1,3)])->phen.ran
-      as.data.frame(do.call(rbind,lapply(STcut,"[[",4))[,c(1,3)])->rat.ran
+      # as.data.frame(do.call(rbind,lapply(STcut,"[[",3))[,c(1,3)])->phen.ran
+      # as.data.frame(do.call(rbind,lapply(STcut,"[[",4))[,c(1,3)])->rat.ran
+
+      as.data.frame(do.call(rbind,lapply(STcut,"[[",2))[,c(1,3)])->phen.ran
+      as.data.frame(do.call(rbind,lapply(STcut,"[[",3))[,c(1,3)])->rat.ran
 
       rbind(c(length(which(phen.ran$slope>0&phen.ran$p.random<=0.05))/nsim,
               length(which(phen.ran$slope<0&phen.ran$p.random<=0.05))/nsim),
@@ -618,21 +626,29 @@ overfitRR<-function(RR,y,
     p.trend->whole.tree.res
 
     if(is.null(trend.node)==FALSE){
-      lapply(STcut,"[[",5)->phen.node
-      lapply(STcut,"[[",6)->rat.node
+      # lapply(STcut,"[[",5)->phen.node
+      # lapply(STcut,"[[",6)->rat.node
 
-      if(length(STcut[[1]])==7){ #### Node comparison ####
+      lapply(STcut,"[[",4)->phen.node
+      lapply(STcut,"[[",5)->rat.node
+
+      #if(length(STcut[[1]])==7){ #### Node comparison ####
+      if(length(STcut[[1]])==6){ #### Node comparison ####
         if(length(trend.node)>2) { #### More than 2 nodes ####
           if(length(y)>Ntip(tree)){ #### Multivariate ####
             comp.phen.y<-comp.rat.y<-nod.nam<-list()
             for(w in 1:(ncol(y)+1)){
               nod.nam<-list()
-              p.comp.phen<-p.comp.rat<-matrix(ncol=4,nrow=nrow(STcut[[1]][[7]][[1]][[1]]))
-              for(k in 1:nrow(STcut[[1]][[7]][[1]][[1]])){
-                do.call(rbind,lapply(lapply(lapply(lapply(STcut,"[[",7),"[[",1),"[[",w),function(x) x[k,]))->pcomp
+              # p.comp.phen<-p.comp.rat<-matrix(ncol=4,nrow=nrow(STcut[[1]][[7]][[1]][[1]]))
+              p.comp.phen<-p.comp.rat<-matrix(ncol=4,nrow=nrow(STcut[[1]][[6]][[1]][[1]]))
+              # for(k in 1:nrow(STcut[[1]][[7]][[1]][[1]])){
+              for(k in 1:nrow(STcut[[1]][[6]][[1]][[1]])){
+                # do.call(rbind,lapply(lapply(lapply(lapply(STcut,"[[",7),"[[",1),"[[",w),function(x) x[k,]))->pcomp
+                do.call(rbind,lapply(lapply(lapply(lapply(STcut,"[[",6),"[[",1),"[[",w),function(x) x[k,]))->pcomp
                 if(w==1) pcomp[nsim,1:2]->nod.nam[[k]]
                 as.data.frame(pcomp[,3:6])->pcomp#->phen.comp[[k]]
-                as.data.frame(do.call(rbind,lapply(lapply(lapply(lapply(STcut,"[[",7),"[[",2),"[[",w),function(x) x[k,]))[,3:6])->rcomp
+                # as.data.frame(do.call(rbind,lapply(lapply(lapply(lapply(STcut,"[[",7),"[[",2),"[[",w),function(x) x[k,]))[,3:6])->rcomp
+                as.data.frame(do.call(rbind,lapply(lapply(lapply(lapply(STcut,"[[",6),"[[",2),"[[",w),function(x) x[k,]))[,3:6])->rcomp
 
                 c(length(which(pcomp$slope.difference>0&pcomp$p.slope<=0.05))/nsim,
                   length(which(pcomp$slope.difference<0&pcomp$p.slope<=0.05))/nsim,
@@ -677,12 +693,16 @@ overfitRR<-function(RR,y,
             names(p.comp)<-c("phenotype","rates")
           }else{ #### Univariate ####
             nod.nam<-list()
-            p.comp.phen<-p.comp.rat<-matrix(ncol=4,nrow=nrow(STcut[[1]][[7]][[1]]))
-            for(k in 1:nrow(STcut[[1]][[7]][[1]])){
-              do.call(rbind,lapply(lapply(lapply(STcut,"[[",7),"[[",1),function(w) w[k,]))->pcomp
+            # p.comp.phen<-p.comp.rat<-matrix(ncol=4,nrow=nrow(STcut[[1]][[7]][[1]]))
+            p.comp.phen<-p.comp.rat<-matrix(ncol=4,nrow=nrow(STcut[[1]][[6]][[1]]))
+            # for(k in 1:nrow(STcut[[1]][[7]][[1]])){
+            for(k in 1:nrow(STcut[[1]][[6]][[1]])){
+              #do.call(rbind,lapply(lapply(lapply(STcut,"[[",7),"[[",1),function(w) w[k,]))->pcomp
+              do.call(rbind,lapply(lapply(lapply(STcut,"[[",6),"[[",1),function(w) w[k,]))->pcomp
               pcomp[nsim,1:2]->nod.nam[[k]]
               as.data.frame(pcomp[,3:6])->pcomp
-              as.data.frame(do.call(rbind,lapply(lapply(lapply(STcut,"[[",7),"[[",2),function(w) w[k,]))[,3:6])->rcomp
+              # as.data.frame(do.call(rbind,lapply(lapply(lapply(STcut,"[[",7),"[[",2),function(w) w[k,]))[,3:6])->rcomp
+              as.data.frame(do.call(rbind,lapply(lapply(lapply(STcut,"[[",6),"[[",2),function(w) w[k,]))[,3:6])->rcomp
 
               c(length(which(pcomp$slope.difference>0&pcomp$p.slope<=0.05))/nsim,
                 length(which(pcomp$slope.difference<0&pcomp$p.slope<=0.05))/nsim,
@@ -709,8 +729,10 @@ overfitRR<-function(RR,y,
           if(length(y)>Ntip(tree)){ #### Multivariate ####
             p.comp.phen<-p.comp.rat<-matrix(ncol=4,nrow=ncol(y)+1)
             for(w in 1:(ncol(y)+1)){
-              as.data.frame(do.call(rbind,lapply(lapply(lapply(STcut,"[[",7),"[[",1),"[[",w)))[,3:6]->phen.comp
-              as.data.frame(do.call(rbind,lapply(lapply(lapply(STcut,"[[",7),"[[",2),"[[",w)))[,3:6]->rat.comp
+              # as.data.frame(do.call(rbind,lapply(lapply(lapply(STcut,"[[",7),"[[",1),"[[",w)))[,3:6]->phen.comp
+              # as.data.frame(do.call(rbind,lapply(lapply(lapply(STcut,"[[",7),"[[",2),"[[",w)))[,3:6]->rat.comp
+              as.data.frame(do.call(rbind,lapply(lapply(lapply(STcut,"[[",6),"[[",1),"[[",w)))[,3:6]->phen.comp
+              as.data.frame(do.call(rbind,lapply(lapply(lapply(STcut,"[[",6),"[[",2),"[[",w)))[,3:6]->rat.comp
 
               c(length(which(phen.comp$slope.difference>0&phen.comp$p.slope<=0.05))/nsim,
                 length(which(phen.comp$slope.difference<0&phen.comp$p.slope<=0.05))/nsim,
@@ -724,11 +746,15 @@ overfitRR<-function(RR,y,
             }
             colnames(p.comp.phen)<-c("p.slope+","p.slope-","p.emm+","p.emm-")
             colnames(p.comp.rat)<-c("p.emm+","p.emm-","p.slope+","p.slope-")
-            rownames(p.comp.phen)<-names(STcut[[1]][[7]][[1]])
-            rownames(p.comp.rat)<-names(STcut[[1]][[7]][[2]])
+            # rownames(p.comp.phen)<-names(STcut[[1]][[7]][[1]])
+            # rownames(p.comp.rat)<-names(STcut[[1]][[7]][[2]])
+            rownames(p.comp.phen)<-names(STcut[[1]][[6]][[1]])
+            rownames(p.comp.rat)<-names(STcut[[1]][[6]][[2]])
           }else{ #### Univariate ####
-            as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",7),"[[",1))[,3:6])->phen.comp
-            as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",7),"[[",2))[,3:6])->rat.comp
+            # as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",7),"[[",1))[,3:6])->phen.comp
+            # as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",7),"[[",2))[,3:6])->rat.comp
+            as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",6),"[[",1))[,3:6])->phen.comp
+            as.data.frame(do.call(rbind,lapply(lapply(STcut,"[[",6),"[[",2))[,3:6])->rat.comp
 
             c(length(which(phen.comp$slope.difference>0&phen.comp$p.slope<=0.05))/nsim,
               length(which(phen.comp$slope.difference<0&phen.comp$p.slope<=0.05))/nsim,
@@ -880,7 +906,7 @@ print.RRphyloList<-function(x,...){
   if("mean.sampling"%in%attributes(x)[[1]]) cat(paste(length(x[[2]]),"overfitRR simulations",sep=" ")) else
     if("lambda"%in%attributes(x[[1]])[[1]]) cat("List of",paste(length(x),"RRphylo outputs",sep=" ")) else
       if(class(x[[1]])[1]%in%c("gls","procD.lm")) cat("List of",paste(length(x),"PGLS_fossil outputs",sep=" ")) else
-        cat("List of",paste(length(x),"ace regression outputs",sep=" "))
+        cat("List of",paste(length(x),"outputs",sep=" "))
 
 }
 

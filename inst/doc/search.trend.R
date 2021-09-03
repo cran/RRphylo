@@ -1,4 +1,10 @@
 ## ---- include = FALSE---------------------------------------------------------
+if (!requireNamespace("rmarkdown", quietly = TRUE) ||
+     !rmarkdown::pandoc_available()) {
+   warning(call. = FALSE, "Pandoc not found, the vignettes is not built")
+   knitr::knit_exit()
+}
+
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -16,52 +22,37 @@ require(ddpcr)
 RRphylo:::range01->range01
 
 sim.bdtree(b = .5, d = 0.2,seed=14)->tree
-rt<-0
-s2m<-1
-es=2
 
 set.seed(14)
-fastBM(tree,a=rt,sig2=s2m)->y
+fastBM(tree,a=0,sig2=1)->y
 
 ### TREND ###
+es=2
 yt <- (diag(vcv(tree))^es)/(diag(vcv(tree))) * y
-data.frame(tree$edge[,2],nodeHeights(tree)[,2])->hei
-tree$tip.label[hei[which(hei[,1]<(Ntip(tree)+1)),1]]->hei[which(hei[,1]<(Ntip(tree)+1)),1]
-hei[,2]->rootD
-c(0.0001,rootD)->rootD
-names(rootD)<-c((Ntip(tree)+1),hei[,1])
+c(0,nodeHeights(tree)[,2])->rootD
+hei <- tree$edge[, 2]
+hei[which(tree$edge[, 2] < Ntip(tree) + 1)] <- tree$tip.label
+names(rootD)<-c(Ntip(tree)+1,hei)
 
-makeL(tree)->L
-makeL1(tree)->L1
 RRphylo(tree,yt)->rr
-
+rr$tip.path->L
+rr$node.path->L1
+rr$ace[1]->rootV
+rr$lambda->lambda
+range01(abs(rr$rates))->rts
+as.matrix(as.data.frame(rts[match(names(rootD),rownames(rts)),]))->rts
 quiet(search.trend(rr,yt,clus=2/parallel::detectCores(),filename=paste(tempdir(),"result", sep = "/"))->st.rates)
 
-c(rr$aces,yt)->phen
-
-rr$rates->rts
-abs(rts)->rts
-as.matrix(as.data.frame(rts[match(names(rootD),rownames(rts)),]))->rts
-range01(rts)->rts
-rootD->rootC
-tend<-2
-
-rr$ace[1]->a
-rootV<-a
-rr$lambda->lambda
 BTS<-list()
 for(i in 1:100){
-  rootC->rootB
-  fastBM(tree,sig2=1,a=a,bounds=c(min(yt),max(yt)))->yb
+  fastBM(tree,sig2=1,a=rootV,bounds=c(min(yt),max(yt)))->yb
   betas <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*% 
               t(L)) %*% (as.matrix(yb)-rootV)
-  bts <- abs(betas)
-  RRphylo:::range01(bts)->BTS[[i]]
-  as.matrix(as.data.frame(bts[match(names(rootB),rownames(bts)),]))->bts
-  bts
+  range01(abs(betas))->bts
+  as.matrix(as.data.frame(bts[match(names(rootD),rownames(bts)),]))->bts
+  bts -> BTS[[i]]
 }
-
-sapply(BTS,function(x) x[match(names(rootD),rownames(x)),])->fu
+do.call(cbind,BTS)->fu
 
 apply(fu,1,function(x) quantile(x,.975))->ful
 apply(fu,1,function(x) quantile(x,.025))->mins
@@ -74,8 +65,7 @@ names(fk.min)<-names(ful)
 data.frame(rootD,fk,fk.min)->dfk
 dfk[order(dfk[,1]),]->dfk
 
-data.frame(rts=rts,col=rep("red",nrow(rts)))->rts
-as.character(rts[,2])->rts[,2]
+data.frame(rts=rts,col=as.character(rep("red",nrow(rts))))->rts
 rts[which(rownames(rts)%in%tree$tip.label),2]<-"green"
 
 par(mfrow=c(1,2),mar=c(4,3,3,1))
@@ -92,81 +82,60 @@ legend("topleft",legend=c("nodes","tips","brownian range"),fill=c("red","green",
 
 #### DRIFT
 ds=1
-yt1<-y+diag(vcv(tree))*ds
+yd<-range01((y+diag(vcv(tree))*ds))
 
-RRphylo:::range01(yt1)->yd
-
-
-data.frame(tree$edge[,2],nodeHeights(tree)[,2])->hei
-tree$tip.label[hei[which(hei[,1]<(Ntip(tree)+1)),1]]->hei[which(hei[,1]<(Ntip(tree)+1)),1]
-hei[,2]->rootD
-c(0.0001,rootD)->rootD
-names(rootD)<-c((Ntip(tree)+1),hei[,1])
-
-makeL(tree)->L
-makeL1(tree)->L1
 RRphylo(tree,yd)->rr
-quiet(search.trend(rr,yd,clus=2/parallel::detectCores(),filename=paste(tempdir(),"result", sep = "/"))->st.phen)
-
+rr$lambda->lambda
 c(rr$aces,yd)->phen
 names(phen)<-c(rownames(rr$aces),names(yd))
-rootD[match(names(phen),names(rootD))]->rootD
+rootD[match(names(phen),names(rootD))]->rootP
+phen[[1]]->rootV
+lm(phen~rootP)->regr
+quiet(search.trend(rr,yd,clus=2/parallel::detectCores(),filename=paste(tempdir(),"result", sep = "/"))->st.phen)
 
-rootD->rootP
 
-phen[[1]]->a->rootV
-lm(phen~rootD)->regr
-
-#ratematrix(tree,yt1)[1]->S2[m] 
 phenD<-list()
-yl<-list()
-for(i in 1:100)
-{
-  fastBM(tree,sig2=s2m,a=rootV,bounds=c(min(yd),max(yd)))->yc
-  yc->yl[[i]]
+for(i in 1:100){
+  fastBM(tree,sig2=1,a=rootV,bounds=c(min(yd),max(yd)))->yc
   RRphylo:::range01(yc)->yc
-  lambda <- rr$lambda
   betas <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*% 
               t(L)) %*% (as.matrix(yc) - rootV)
   aceRR <- (L1 %*% betas[1:Nnode(tree), ]) + rootV
   c(aceRR,yc)->phenC
   names(phenC)<-c(rownames(aceRR),names(yc))
-  phenC->phenD[[i]]
-  #coef(summary(lm(phenC~rootP)))[2]->slopec[i]
-  
+  phenC[match(names(rootP),names(phenC))]->phenD[[i]]
 }
 
-sapply(phenD,function(x) x[match(names(rootD),names(x))])->fu
+sapply(phenD,function(x) x[match(names(rootP),names(x))])->fu
 
 apply(fu,1,function(x) quantile(x,.975))->ful
 apply(fu,1,function(x) quantile(x,.025))->mins
-predict(loess(ful~rootD))->fk
-predict(loess(mins~rootD))->fk.min
+predict(loess(ful~rootP))->fk
+predict(loess(mins~rootP))->fk.min
 names(fk)<-names(ful)
 names(fk.min)<-names(ful)
 
-data.frame(rootD,fk,fk.min)->dfk
+data.frame(rootP,fk,fk.min)->dfk
 dfk[order(dfk[,1]),]->dfk
 
-data.frame(phen=phen,col=rep("red",length(phen)))->phen
-as.character(phen[,2])->phen[,2]
+data.frame(phen=phen,col=as.character(rep("red",length(phen))))->phen
 phen[which(rownames(phen)%in%tree$tip.label),2]<-"green"
 
-plot(NA,ylim=range(phen[,1]),xlim=range(rootD),
+plot(NA,ylim=range(phen[,1]),xlim=range(rootP),
      mgp=c(1.8,0.5,0),
      xlab="distance from the root",ylab="rescaled phenotypes",main="Simulation for trend\nin mean phenotypes")
-polygon(c(dfk$rootD,rev(dfk$rootD)),c(dfk$fk,rev(dfk$fk.min)),col = rgb(0.5, 0.5, 0.5,
+polygon(c(dfk$rootP,rev(dfk$rootP)),c(dfk$fk,rev(dfk$fk.min)),col = rgb(0.5, 0.5, 0.5,
                                                                         0.3), border = NA)
-points(rootD,phen[,1],cex=1.5,bg=phen$col,
+points(rootP,phen[,1],cex=1.5,bg=phen$col,
        col="black",pch=21)
-abline(lm(phen[,1]~rootD),lwd=2,col="#ff00ff")
+abline(lm(phen[,1]~rootP),lwd=2,col="#ff00ff")
 
 
 
-as.data.frame(rbind(c(st.rates[[4]],NA),c(st.phen[[3]][1:3],NA,st.phen[[3]][4])))->res
+as.data.frame(rbind(c(st.rates[[3]],NA),c(st.phen[[2]][1:3],NA,st.phen[[2]][4])))->res
 
 colnames(res)[4:5]<-c("spread","dev")
-rownames(res)<-c("absolute rate regression","phenotypic regression")
+rownames(res)<-c("rescaled absolute rate regression","phenotypic regression")
 
 ## ----eval=FALSE,message=FALSE,warning=FALSE-----------------------------------
 #  search.trend(RR=RR,y=y,filename="st whole")->ST
@@ -312,8 +281,8 @@ ablineclip(lm(phen[which(names(phen)%in%desn2)]~I(max(ages)-ages[which(names(age
            col="aquamarine",lwd=3)
 legend("topleft",legend=c("node 275","node 198","entire tree"),fill=c("aquamarine3","aquamarine","gray20"),bty="n",x.intersp = .5)
 
-cbind(data.frame(node=names(STrates[[6]]),do.call(rbind,STrates[[6]])),
-      data.frame(node=names(STphen[[5]]),do.call(rbind,STphen[[5]])))->res
+cbind(data.frame(node=names(STrates[[5]]),do.call(rbind,STrates[[5]])),
+      data.frame(node=names(STphen[[4]]),do.call(rbind,STphen[[4]])))->res
 
 ## ----eval=FALSE,message=FALSE,warning=FALSE-----------------------------------
 #  search.trend(RR=RR,y=y,node=c(275,198),filename="st nodes")->ST
@@ -327,11 +296,11 @@ add_header_above(c("Trend in absolute rates" = 5, "Trend in phenotypic means" = 
 
 
 ## ----echo=FALSE,message=FALSE,warning=FALSE-----------------------------------
-knitr::kable(STrates[[7]][[2]],digits=3,align="c") %>%
+knitr::kable(STrates[[6]][[2]],digits=3,align="c") %>%
 kable_styling(full_width = F, position = "center") %>%
 add_header_above(c("Comparison of trends in absolute rates" = 6))
 
-knitr::kable(STphen[[7]][[1]],digits=3,align="c") %>%
+knitr::kable(STphen[[6]][[1]],digits=3,align="c") %>%
 kable_styling(full_width = F, position = "center") %>%
 add_header_above(c("Comparison of trends in phenotypic means" = 6))
 
