@@ -68,5 +68,6 @@ makeL1<-function (tree)
     L1[, 1] <- 1
   else L1[, 1] <- t$root.edge
   L1[which(is.na(L1))] <- 0
+  L1[match(unique(t$edge[,1]),rownames(L1)),match(unique(t$edge[,1]),colnames(L1))]->L1
   return(L1)
 }

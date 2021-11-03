@@ -1,5 +1,5 @@
-f72c602449e954d171ed6fdbc41f66fa *DESCRIPTION
-f911dd8aeedcc5a88615eb2c09dbcfce *NAMESPACE
+88d7bd601a51082d34f2a687cb45ab69 *DESCRIPTION
+537093d982bf24f3bbda33a9ce7f5305 *NAMESPACE
 261a5cb1c3f99fcf5258fc00581d1782 *R/DataApes.R
 010b92b31a817997550d2fff8d6b18cb *R/DataCetaceans.R
 cea3aeb7ef747aa571e2c309b99f95a5 *R/DataFelids.R
@@ -17,17 +17,18 @@ c0d0f52ef6b87545108fa99c53b02aa1 *R/conv.map.R
 90cd489ff8e0cfd601945889d1368b90 *R/distNodes.R
 74dd0c5aa70022458e77b88a87ed492d *R/evo.dir.R
 84b7af681daac17cb8f8ad9aa5d11b99 *R/fix.poly.R
-4c8a206020d7e583749b08ef949d1465 *R/getMommy.R
-a6c0fd31bf8693346b357664c3737da3 *R/getSis.R
+dda45dcc7d9ac76cd362d3cdb01ac461 *R/getMommy.R
+d67ec60316cdf8d0b10fd94a18d12b27 *R/getSis.R
 35fc32919ff39c89255d1d443e5571d0 *R/makeFossil.R
 bda7249115ad6396415da5a18f1d4f7d *R/makeL.R
-535b45e17e6c692fcfb472faca2505a8 *R/makeL1.R
+92117ccc80fd1a5360f5bbd1da70576f *R/makeL1.R
 e71dabaa58444e02c8b4c5661c40020b *R/node.paths.R
 e0e0ef0e865c8f4bfc70392d23b8a291 *R/overfitRR.R
 ebe69f43459fcae5efd2f4e833d380fa *R/phyloclust.R
 dd63d62aa1d03d8c8d48c8ee487855c2 *R/plotRates.R
 acdb88ed6a97ee2c16b50bfb9f4bf28d *R/random.evolvability.test.R
 77d92728eae943cbae5ed67bb01a7910 *R/rate.map.R
+2e8bee72feb265003af0bf4db673ba50 *R/rescaleRR.R
 0c483efb976591820c987318d194ba8d *R/retrieve.angles.R
 461648481a15c9d51b4ebccf724bc71e *R/scaleTree.R
 e3a255c2e43f69cfeb9322e033b1b4e1 *R/search.conv.R
@@ -84,7 +85,7 @@ d53573c48c42999801eff4343e9ddb9a *man/conv.map.Rd
 bc18f45c9d57c19cb6a5b02a3517c00c *man/distNodes.Rd
 a8020baf596868d2ba052076aab27967 *man/evo.dir.Rd
 f09ce74cc9dc21bc9d07f1c734c42f37 *man/fix.poly.Rd
-ba98737d1850c34e86ff12c28ffcdc35 *man/getMommy.Rd
+0325923641b041c9f46d03921f403816 *man/getMommy.Rd
 87899a18538b1d7934f815cec9ac60e9 *man/getSis.Rd
 aae4e8bf77e5564046bdbf0a533f96b1 *man/makeFossil.Rd
 81913e50f1d7c91185b865fcd568692d *man/makeL.Rd
@@ -95,6 +96,7 @@ ad5478da4ef06a25e497601bb1e01724 *man/node.paths.Rd
 25c9cb95907c332dc1e4dd2e440c554c *man/plotRates.Rd
 e64128fe5cfd9e6bc9ce2d64febd67f4 *man/random.evolvability.test.Rd
 b38c31eb013fdcfc6fc19a69fdc5366c *man/rate.map.Rd
+5da5b3542535dcc0c012d1b66e539d30 *man/rescaleRR.Rd
 3e82e176936cf8da68a1bcae9cb70ecd *man/retrieve.angles.Rd
 21a9a3e9f06df0e1a308a93b88a4a00c *man/scaleTree.Rd
 bd6a74299b646d3bc2ea786d5628bf31 *man/search.conv.Rd
