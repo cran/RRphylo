@@ -15,7 +15,8 @@
 #' @details When an entire lineage is cut (i.e. one or more nodes along a path) and \code{keep.lineages = TRUE},
 #'   the leaves left are labeled as "l" followed by a number.
 #' @return The function returns the cut phylogeny and plots it into the graphic
-#'   device. The time axis keeps the root age of the original tree.
+#'   device. The time axis keeps the root age of the original tree. Note,
+#'   tip labels are ordered according to their position in the tree.
 #' @author Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
 #'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
 #'   Carotenuto
@@ -62,7 +63,6 @@ cutPhylo<-function(tree,age=NULL,node=NULL,keep.lineage=TRUE){
   if(all(cutter%in%tree$tip.label)){
     tt$edge.length[match(match(names(ddcut),tt$tip.label),tt$edge[,2])]<-
       tt$edge.length[match(match(names(ddcut),tt$tip.label),tt$edge[,2])]-(ddcut-cutT)
-  #}
   }else{
   ### Tips and nodes ###
   #if(any(suppressWarnings(as.numeric(cutter))>Ntip(tree))){

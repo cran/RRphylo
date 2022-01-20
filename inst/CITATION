@@ -199,3 +199,28 @@ citEntry(entry        = "Article",
                         "Palaeontology, 64, 573–584.",
                         "doi:10.1111/pala.12542")
 )
+
+
+
+citEntry(entry        = "Article",
+         header       = "rate.map",
+         title        = "Human face-off: a new method for mapping evolutionary rates on three-dimensional digital models",
+         author       = personList(as.person("Silvia Castiglione"),
+                                   as.person("Marina Melchionna"),
+                                   as.person("Antonio Profico"),
+                                   as.person("Gabriele Sansalone"),
+                                   as.person("Maria Modafferi"),
+                                   as.person("Alessandro Mondanaro"),
+                                   as.person("Stephen Wroe"),
+                                   as.person("Paolo Piras"),
+                                   as.person("Pasquale Raia")),
+         journal      = "Palaeontology",
+         year         = "2021",
+         volume       = "",
+         pages        = "",
+         url          = "https://doi.org/10.1111/pala.12582",
+         textVersion  = paste("Castiglione, S., Melchionna, M., Profico, A., Sansalone, G., Modafferi, M., Mondanaro, A., Wroe, S., Piras, P., & Raia, P. (2021).",
+                        "Human face-off: a new method for mapping evolutionary rates on three‐dimensional digital models.",
+                        "Palaeontology.",
+                        "doi:10.1111/pala.12582")
+)

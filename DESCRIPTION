@@ -1,8 +1,8 @@
 Package: RRphylo
 Type: Package
 Title: Phylogenetic Ridge Regression Methods for Comparative Studies
-Date: 2021-11-03
-Version: 2.5.9
+Date: 2022-01-20
+Version: 2.6.0
 Author: Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco Carotenuto
 Maintainer: Pasquale Raia <pasquale.raia@unina.it>
 Description: Functions for phylogenetic analysis (Castiglione et al, 2018 <doi:10.1111/2041-210X.12954>). The functions perform the estimation of phenotypic evolutionary rates, identification of phenotypic evolutionary rate shifts, quantification of direction and size of evolutionary change in multivariate traits, the computation of ontogenetic shape vectors and test for morphological convergence.
@@ -16,10 +16,10 @@ Suggests: phangorn, rlist, scales, R.utils,cluster, RColorBrewer, nlme,
         knitr,kableExtra, plotrix, pdftools, rgl, mvMORPH, ggplot2,
         qpdf, inflection, Rvcg, Morpho, evolqg, manipulate, webshot2,
         markdown
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 VignetteBuilder: knitr
 Additional_repositories: https://dmurdoch.github.io/drat
 NeedsCompilation: no
-Packaged: 2021-11-03 16:25:03 UTC; Utente
+Packaged: 2022-01-20 09:47:18 UTC; Utente
 Repository: CRAN
-Date/Publication: 2021-11-04 00:10:17 UTC
+Date/Publication: 2022-01-20 15:22:48 UTC

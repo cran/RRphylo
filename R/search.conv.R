@@ -71,6 +71,7 @@
 #' @importFrom graphics axis layout lines segments
 #' @importFrom stats TukeyHSD aov princomp
 #' @importFrom ape vcv cophenetic.phylo
+#' @importFrom grDevices rgb
 #' @return If convergence between clades is tested, the function returns a list
 #'   including:
 #' @return \itemize{\item\strong{$node pairs}: a dataframe containing for each

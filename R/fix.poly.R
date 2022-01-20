@@ -17,7 +17,8 @@
 #'   randomly (the default) or in the order they appear in the tree (if
 #'   \code{random = FALSE}).
 #' @return A phylogenetic tree with randomly fixed (i.e. \code{type='resolve'})
-#'   polytomies or created polytomies (i.e. \code{type='collapse'}).
+#'   polytomies or created polytomies (i.e. \code{type='collapse'}).Note,
+#'   tip labels are ordered according to their position in the tree.
 #' @importFrom ape di2multi
 #' @author Silvia Castiglione, Pasquale Raia, Carmela Serio
 #' @details Under \code{type='resolve'} polytomous clades are resolved adding
@@ -60,6 +61,13 @@ fix.poly<-function(tree,type=c("collapse","resolve"),node=NULL,tol=1e-10,random=
   # require(ape)
   # require(phytools)
   # require(geiger)
+
+  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
+    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
+    tree$tip.label<-tips(tree,(Ntip(tree)+1))
+    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
+    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+  }
 
   tree->treeN
 
@@ -120,7 +128,7 @@ fix.poly<-function(tree,type=c("collapse","resolve"),node=NULL,tol=1e-10,random=
         Lx[,1]<-0
 
         for(e in 1:Ntip(trx))
-          (sum(Lx[e,])-length(getMommy(trx,e))*min(trx$edge.length[which(trx$edge.length!=0)]))/(length(getMommy(trx,e)))->Lx[e,][which(Lx[e,]!=0)]
+          (sum(Lx[e,])-length(getMommy(trx,rownames(Lx)[e]))*min(trx$edge.length[which(trx$edge.length!=0)]))/(length(getMommy(trx,rownames(Lx)[e])))->Lx[e,][which(Lx[e,]!=0)]
 
         suppressWarnings(apply(Lx,2,function(x) min(x[-x!=0]))->xtar)
         xtar[-1]->xtar

@@ -38,10 +38,14 @@ distNodes<-function(tree,node=NULL,clus=0.5){
   #require(parallel)
 
   if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
+    tree->treeO
     data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
     tree$tip.label<-tips(tree,(Ntip(tree)+1))
     data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
     tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+
+    if(suppressWarnings(any(as.numeric(node)<=Ntip(tree), na.rm = TRUE)))
+      match(treeO$tip.label[as.numeric(node)[which(as.numeric(node)<=Ntip(tree))]],tree$tip.label)->node[which(as.numeric(node)<=Ntip(tree))]
   }
 
   makeL(tree)->L

@@ -34,7 +34,7 @@ rescaleRR<-function(tree,RR){
   abs(RR$rates[,1])->rts
   sum(tree1$edge.length)->t1ele
   rts[-1]->rts
-  names(rts)[Nnode(tree1):length(rts)]<-seq(1,Ntip(tree1))
+  names(rts)[Nnode(tree1):length(rts)]<-match(names(rts)[Nnode(tree1):length(rts)],tree$tip.label)
   rts[match(tree1$edge[,2],names(rts))]->rts
   tree1$edge.length*rts->tree1$edge.length
   t1ele/sum(tree1$edge.length)*tree1$edge.length->tree1$edge.length

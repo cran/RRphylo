@@ -167,11 +167,6 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
 
   if(any(dat$bind%in%tree2$tip.label)) drop.tip(tree2,dat[which(dat$bind%in%tree2$tip.label),1])->tree2
 
-  # if(all(dat$bind.type==1))
-  #   data.frame(bind=dat$bind,cbind(unlist(strsplit(dat[,1],"-")),unlist(strsplit(dat[,1],"-"))),dat[,2:4])->dat else
-  #     data.frame(bind=dat$bind,do.call(rbind,strsplit(dat[,1],"-")),dat[,2:4])->dat
-  # colnames(dat)[2:3]<-paste("bind",1:2,sep="")
-
   dat$bind.tips<-NA
   if(all(dat$bind.type==1)) dat$bind.tips<-dat$bind else{
     dat[which(dat$bind.type==2),]$bind.tips<-lapply(dat$bind[which(dat$bind.type==2)],function(x) tips(tree2,getMRCA(tree2,strsplit(x,"-")[[1]])))
@@ -179,15 +174,6 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
   }
 
   ### bind missing from tree2 ###
-  # if(!all(c(dat[which(dat$bind.type==2),2],dat[which(dat$bind.type==2),3])%in%tree2$tip.label)){
-  #   stop(paste(paste(c(dat[which(dat$bind.type==2),2],
-  #                      dat[which(dat$bind.type==2),3])[which(!c(dat[which(dat$bind.type==2),2],
-  #                                                               dat[which(dat$bind.type==2),3])%in%tree2$tip.label)],
-  #                    collapse=", "),
-  #              "not in source.tree"))
-  # }
-  #
-
   if(!all(unlist(dat[which(dat$bind.type==2),]$bind.tips)%in%tree2$tip.label)){
     stop(paste(paste(unlist(dat[which(dat$bind.type==2),]$bind.tips)[which(
       unlist(dat[which(dat$bind.type==2),]$bind.tips)%in%tree2$tip.label)],
@@ -195,11 +181,6 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
   }
 
   ### reference missing ###
-  # if(!all(unlist(strsplit(dat$reference,"-"))%in%c(tree$tip.label,dat$bind1,dat$bind2,tree2$tip.label))){
-  #   stop(paste(paste(unlist(strsplit(dat$reference,"-"))[which(!unlist(strsplit(dat$reference,"-"))%in%c(tree$tip.label,dat$bind1,dat$bind2))],
-  #                    collapse=","),"missing from the backbone, the source and the tips to be attached"))
-  # }
-
   if(!all(unlist(strsplit(dat$reference,"-"))%in%c(tree$tip.label,unlist(dat$bind.tips),tree2$tip.label))){
     stop(paste(paste(unlist(strsplit(dat$reference,"-"))[which(!unlist(strsplit(dat$reference,"-"))%in%c(tree$tip.label,unlist(dat$bind.tips),tree2$tip.label))],
                      collapse=","),"missing from the backbone, the source and the tips to be attached"))
@@ -236,21 +217,6 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
 
   if(any(which(!is.na(ref.tree)))){
     dat[which(!is.na(ref.tree)),]->dat.new
-    # dat.new[,7:8]<-do.call(rbind,ref.tree[-which(is.na(ref.tree))])
-    #
-    # if(any(dat.new[,7]%in%c(dat.new[,2],dat.new[,3])|dat.new[,8]%in%c(dat.new[,2],dat.new[,3]))){
-    #   while(nrow(dat.new>0)){
-    #     which(!(dat.new[,7]%in%c(dat.new[,2],dat.new[,3])|dat.new[,8]%in%c(dat.new[,2],dat.new[,3])))->outs
-    #     dat[match(dat.new[outs,1],dat[,1]),]$ref.tree1<-max(dat$ref.tree1,na.rm=TRUE)+1:length(outs)
-    #     dat.new[-outs,]->dat.new
-    #   }
-    # }else{
-    #   which(!(dat.new[,7]%in%c(dat.new[,2],dat.new[,3])|dat.new[,8]%in%c(dat.new[,2],dat.new[,3])))->outs
-    #   dat[match(dat.new[outs,1],dat[,1]),]$ref.tree1<-
-    #     max(dat$ref.tree1,na.rm=TRUE)+1:length(which(!dat.new$ref.tree1%in%dat.new[,1]))
-    # }
-
-
     dat.new[,6:7]<-do.call(rbind,ref.tree[-which(is.na(ref.tree))])
 
     if(any(dat.new[,6]%in%unlist(dat.new$bind.tips)|dat.new[,7]%in%unlist(dat.new$bind.tips))){
@@ -269,9 +235,7 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
   dat[order(dat$ref.tree1),]->dat
 
   if(!is.null(tree2)){
-    # if(any(dat$bind%in%tree2$tip.label)) drop.tip(tree2,dat[which(dat$bind%in%tree2$tip.label),1])->tree2
     dat$MRCAbind<-NA
-    # apply(dat[which(dat$bind.type==2),2:3],1,function(x) getMRCA(tree2,x))->dat$MRCAbind[which(dat$bind.type==2)]
     sapply(dat[which(dat$bind.type==2),]$bind.tips,function(x) getMRCA(tree2,x))->dat$MRCAbind[which(dat$bind.type==2)]
 
     if(any(dat$bind.type==2)){
@@ -400,7 +364,6 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
       }
 
       lapply(1:nrow(dat),function(x){
-        # getMRCA(tree.final,c(as.matrix(dat[x,2:3]),unlist(strsplit(dat[x,4],"-"))))->MRCAplot
         getMRCA(tree.final,c(unlist(dat$bind.tips[x]),unlist(strsplit(dat$reference[x],"-"))))->MRCAplot
         extract.clade(tree.final,getMRCA(tree.final,c(unlist(dat$bind.tips[x]),unlist(strsplit(dat$reference[x],"-")))))->cla
         colo[which(names(colo)%in%getDescendants(tree.final,MRCAplot))]->colo.cla

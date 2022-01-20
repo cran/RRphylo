@@ -54,8 +54,8 @@ if \code{y} is multivariate). To run the single-threaded version of
 \value{
 \strong{tree} the tree used by \code{RRphylo}. The fully dichotomous
   version of the tree argument. For trees with polytomies, the tree is
-  resolved by using \code{multi2di} function in the package \pkg{ape}. If the
-  latter is a dichotomous tree, the two trees will be identical.
+  resolved by using \code{multi2di} function in the package \pkg{ape}. Note,
+  tip labels are ordered according to their position in the tree.
 
 \strong{tip.path} a \eqn{n * m} matrix, where n=number of tips and
   m=number of branches (i.e. 2*n-1). Each row represents the branch lengths

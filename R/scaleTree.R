@@ -18,7 +18,7 @@
 #'@export
 #'@seealso \href{../doc/Tree-Manipulation.html#scaleTree}{\code{scaleTree} vignette}
 #'@importFrom geiger rescale
-#'@return Rescaled phylogentic tree.
+#'@return Rescaled phylogentic tree with tip labels ordered according to their position in the tree.
 #'@author Silvia Castiglione, Pasquale Raia, Carmela Serio, Alessandro
 #'  Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
 #'  Carotenuto

@@ -14,6 +14,7 @@
 #'   working directory.
 #'@export
 #' @seealso \href{../doc/RRphylo.html}{\code{RRphylo} vignette}
+#' @importFrom graphics hist par
 #'@importFrom grDevices tiff
 #'@importFrom graphics abline barplot legend
 #'@return The function produces two barplots. On the left side, the rates (in

@@ -88,12 +88,12 @@ PGLS_fossil<-function(modform,data,tree,RR=NULL)
   }
 
 
-  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
-    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
-    tree$tip.label<-tips(tree,(Ntip(tree)+1))
-    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
-    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
-  }
+  # if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
+  #   data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
+  #   tree$tip.label<-tips(tree,(Ntip(tree)+1))
+  #   data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
+  #   tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+  # }
 
   for(k in 1:length(data)){
     data[[k]]->sam
@@ -121,14 +121,7 @@ PGLS_fossil<-function(modform,data,tree,RR=NULL)
       suppressWarnings(nlme::gls(modform, correlation=co, weights=vf)->res)
     }
   }else{
-    tree->tree1
-    abs(RR$rates[,1])->rts
-    sum(tree1$edge.length)->t1ele
-    rts[-1]->rts
-    names(rts)[Nnode(tree1):length(rts)]<-seq(1,Ntip(tree1))
-    rts[match(tree1$edge[,2],names(rts))]->rts
-    tree1$edge.length*rts->tree1$edge.length
-    t1ele/sum(tree1$edge.length)*tree1$edge.length->tree1$edge.length
+    rescaleRR(tree,RR)->tree1
 
     data->gdf
     class(gdf)<-"geomorph.data.frame"

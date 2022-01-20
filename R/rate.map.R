@@ -51,6 +51,10 @@
 #'   R-Packages for geometric morphometrics, shape analysis and surface
 #'   manipulations.} In: Statistical shape and deformation analysis. Academic
 #'   Press.
+#'   Castiglione, S., Melchionna, M., Profico, A., Sansalone, G.,
+#'   Modafferi, M., Mondanaro, A., Wroe, S., Piras, P., & Raia, P. (2021). Human
+#'   face-off: a new method for mapping evolutionary rates on three‐dimensional
+#'   digital models. Palaeontology. doi:10.1111/pala.12582
 #' @examples
 #'   \dontrun{
 #'   data(DataSimians)

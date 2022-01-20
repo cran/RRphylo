@@ -23,7 +23,7 @@ needed to fit tip ages.}
 nodes.}
 }
 \value{
-Rescaled phylogentic tree.
+Rescaled phylogentic tree with tip labels ordered according to their position in the tree.
 }
 \description{
 The function is a wrapper around the functions "scalePhylo",

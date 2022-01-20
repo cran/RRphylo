@@ -20,7 +20,8 @@
 #' @importFrom stats runif
 #' @importFrom ape cophenetic.phylo
 #' @return The function returns a list containing the 'swapped' version of the
-#'   original tree, and the Kuhner-Felsenstein distance between the trees.
+#'   original tree, and the Kuhner-Felsenstein distance between the trees. Note,
+#'   tip labels are ordered according to their position in the tree.
 #' @author Silvia Castiglione, Pasquale Raia, Carmela Serio, Alessandro
 #'   Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
 #'   Carotenuto

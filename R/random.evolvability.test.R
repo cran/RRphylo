@@ -7,7 +7,7 @@
 #'   to calculate: Mean Squared Correlation, ICV, Autonomy,
 #'   ConditionalEvolvability, Constraints, Evolvability, Flexibility,
 #'   Pc1Percent, and Respondability. To assess the importance of phylogenetic
-#'   structuring (signal) on Respondability Evolvability, and Flexibility, the
+#'   structuring (signal) on Respondability Evolvability, and Flexibility. The
 #'   function performs a randomization test by randomly shuffling the species on
 #'   tree and replicating the analyses \code{nsim} times. A p-value is computed
 #'   by contrasting the real metrics to the ones derived by randomization.
@@ -69,14 +69,6 @@ random.evolvability.test<-function(tree,data,node.estimation=c("RR","BM"),aces=N
   if (!requireNamespace("evolqg", quietly = TRUE)) {
     stop("Package \"evolqg\" needed for this function to work. Please install it.",
          call. = FALSE)
-  }
-
-
-  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
-    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
-    tree$tip.label<-tips(tree,(Ntip(tree)+1))
-    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
-    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
   }
 
   if(!is.binary(tree)){
