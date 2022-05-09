@@ -16,7 +16,6 @@ options(rmarkdown.html_vignette.check_title = FALSE)
 ## ----echo=FALSE,message=FALSE,warning=FALSE,fig.dim=c(6,4),out.width="70%",dpi=220----
 require(ape)
 require(phytools)
-require(geiger)
 
 set.seed(14)
 rtree(10)->tree.back
@@ -170,11 +169,13 @@ tm<-function(backbone,data,source.tree=NULL,tip.ages = NULL, node.ages = NULL,mi
       if(isTRUE(dat$poly[k])){
         0->pos.ref
         if((max(diag(vcv(cla)))+max(diag(vcv(cla)))/10)>(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]))
-          rescale(cla,"depth",(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]+max(diag(vcv(cla)))/10))->cla
+          # rescale(cla,"depth",(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]+max(diag(vcv(cla)))/10))->cla
+          rescaleRR(cla,height=(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]+max(diag(vcv(cla)))/10))->cla
         cla$root.edge<-max(diag(vcv(cla)))/10
       }else {
         if((max(diag(vcv(cla)))+br.len/2)>(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),1])){
-          rescale(cla,"depth",(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]))->cla
+          # rescale(cla,"depth",(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]))->cla
+          rescaleRR(cla,height=(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]))->cla
           pos.ref<-br.len/2
         }else if((max(diag(vcv(cla)))+br.len/2)>(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]))
           (max(diag(vcv(cla)))+br.len/2)-(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2])->pos.ref else br.len/2->pos.ref
@@ -233,8 +234,8 @@ tm<-function(backbone,data,source.tree=NULL,tip.ages = NULL, node.ages = NULL,mi
   if(max(diag(vcv(tree)))>H&&(!(Ntip(tree)+1)%in%names(node.ages)))
     warning(paste("Root age not indicated: the tree root arbitrarily set at",round(max(diag(vcv(tree))),2)),immediate.=TRUE)
 
-  scaleTree(tree,node.ages=node.ages,tip.ages =tip.ages,min.branch=min.branch)->tree.final->tree.plot
-
+  # scaleTree(tree,node.ages=node.ages,tip.ages =tip.ages,min.branch=min.branch)->tree.final->tree.plot
+scaleTree(tree,node.ages=node.ages,tip.ages =tip.ages)->tree.final->tree.plot
   if(any(dat$bind.type==2)) lapply(dat$MRCAbind[which(dat$bind.type==2)],function(x)
       c(getMRCA(tree.plot,tips(tree2,x)),getDescendants(tree.plot,getMRCA(tree.plot,tips(tree2,x)))))->cla.plot else cla.plot<-c()
 
@@ -383,7 +384,6 @@ tree.merger(backbone = backtree,data=dato,source.tree = sourcetree,
 ## ----echo=c(14:15,32:33), fig.dim=c(6,6), message=FALSE, warning=FALSE, dpi=200, out.width='98%'----
 library(ape)
 library(phytools)
-library(geiger)
 
 set.seed(14)
 DataFelids$treefel->tree
@@ -436,7 +436,8 @@ H-dist.nodes(tree)[(Nnode(tree)+1),164]->nod.ages
 names(nod.ages)<-96
 
 c(sp.ages,nod.ages)
-scaleTree(tree,tip.ages = sp.ages,node.ages = nod.ages,min.branch = 1)->treeS
+# scaleTree(tree,tip.ages = sp.ages,node.ages = nod.ages,min.branch = 1)->treeS
+scaleTree(tree,tip.ages = sp.ages,node.ages = nod.ages)->treeS
 
 par(mfrow=c(1,2))
 plot(tree,edge.color = "gray40",show.tip.label=F,no.margin = TRUE,edge.width=1.5)
@@ -470,7 +471,8 @@ H-dist.nodes(tree)[(Ntip(tree)+1),(Ntip(tree)+1):(Ntip(tree)+Nnode(tree))]->age.
 H-diag(vcv(tree))->age.tips
 
 # apply Pagel's lambda transformation to change node ages only 
-geiger::rescale(tree,"lambda",0.8)->tree1
+# geiger::rescale(tree,"lambda",0.8)->tree1
+rescaleRR(tree,lambda=0.8)->tree1
 
 # apply scaleTree to the transformed phylogeny, by setting
 # the original ages at nodes as node.ages
@@ -510,7 +512,8 @@ title("scaleTree rescaled",cex.main=1.2)
 
 # apply Pagel's kappa transformation to change both species and node ages, 
 # including the age at the tree root
-geiger::rescale(tree,"kappa",0.5)->tree3
+# geiger::rescale(tree,"kappa",0.5)->tree3
+rescaleRR(tree,kappa=0.5)->tree3
 
 # apply scaleTree to the transformed phylogeny, by setting
 # the original ages at nodes as node.ages

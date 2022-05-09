@@ -148,7 +148,6 @@ knitr::kable(LL,digits=3,align="c", caption="L' matrix") %>%
 ## ----message = FALSE,echo=FALSE,out.width='47%',dpi=220-----------------------
 require(ape)
 require(phytools)
-require(geiger)
 set.seed(76)
 rtree(8)->tree
 tree$node.label<-9:15
@@ -188,7 +187,6 @@ DataCetaceans$brainmasscet->brainmasscet # logged brain mass data
 DataCetaceans$aceMyst->aceMyst # known phenotypic value for the most recent 
                                # common ancestor of Mysticeti
 
-require(geiger)
 par(mar=c(0,0,0,1))
 plot(ladderize(treecet,FALSE),show.tip.label = FALSE,edge.color = "gray40",edge.width = 1.5)
 plotinfo<-get("last_plot.phylo",envir =ape::.PlotPhyloEnv)

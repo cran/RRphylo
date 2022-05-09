@@ -16,7 +16,7 @@ options(rmarkdown.html_vignette.check_title = FALSE)
 ## ----echo=3,fig.dim=c(6,3), message=FALSE, warning=FALSE, dpi=200, out.width='98%',fig.align="center"----
 {require(ape)
 require(phytools)
-require(geiger)
+# require(geiger)
 
 maxN<-function(x, N=2){
     len <- length(x)

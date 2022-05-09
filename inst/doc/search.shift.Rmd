@@ -46,7 +46,6 @@ Under the automatic mode, the function selects all the clades ranging from one t
 ```{r,echo=FALSE,message=FALSE,fig.dim=c(4,4),out.width="70%",dpi=220}
 require(ape)
 require(phytools)
-require(geiger)
 require(scales)
 
 set.seed(22)
@@ -244,7 +243,6 @@ If the clade presumed to shift is indicated (argument `node`), the function comp
 ```{r,echo=FALSE,message=FALSE,fig.dim=c(4,4),out.width="60%",dpi=220,fig.align="center"}
 require(ape)
 require(phytools)
-require(geiger)
 require(scales)
 
 node = 159
@@ -300,7 +298,6 @@ If more than one clade is indicated, the procedure is similar, but the rate diff
 ```{r,echo=FALSE,message=FALSE,fig.dim=c(4,4),out.width='47%',dpi=220}
 require(ape)
 require(phytools)
-require(geiger)
 require(scales)
 
 node = c(159,177)
@@ -426,7 +423,6 @@ If a binary category is under testing, the function computes the difference betw
 ```{r,echo=FALSE,message=FALSE,fig.dim=c(4,4),out.width="60%",dpi=220,fig.align="center"}
 require(ape)
 require(phytools)
-require(geiger)
 require(scales)
 
 set.seed(14)
@@ -477,7 +473,6 @@ When the `state` vector includes more than two categories, the function computes
 #,fig.align="center"}
 require(ape)
 require(phytools)
-require(geiger)
 require(scales)
 
 rep("a",100)->categ
@@ -582,7 +577,7 @@ DataOrnithodirans$massdino->massdino # body mass data
 DataOrnithodirans$statedino->statedino # locomotory type data
 log(massdino)->lmass
 
-require(geiger)
+
 require(plotrix)
 require(RColorBrewer)
 statedino->colo

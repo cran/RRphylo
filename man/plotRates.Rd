@@ -4,7 +4,7 @@
 \alias{plotRates}
 \title{Plot RRphylo rates at a specified node}
 \usage{
-plotRates(RR,node,export.tiff =FALSE,foldername=NULL,filename=NULL)
+plotRates(RR,node,export.tiff =FALSE,filename=NULL)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}.}
@@ -13,9 +13,6 @@ plotRates(RR,node,export.tiff =FALSE,foldername=NULL,filename=NULL)
 
 \item{export.tiff}{if \code{TRUE} the function save a "rate_bars.tiff" file
 inside the working directory. It is \code{TRUE} by default.}
-
-\item{foldername}{has been deprecated; please see the argument
-\code{filename} instead.}
 
 \item{filename}{a character indicating the name of the tiff file and the path
 where it is to be saved. If no path is indicated the file is stored in the

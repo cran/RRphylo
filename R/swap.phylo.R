@@ -24,7 +24,7 @@ swap.phylo<-function(){
     #
     # tree->tree1
     # #if(inherits(y,"data.frame")) treedata(tree,y,sort=TRUE)[[2]]->y
-    # if(is.null(nrow(y))) y <- treedata(tree, y, sort = TRUE)[[2]][,1] else y <- treedata(tree, y, sort = TRUE)[[2]]
+  # if(is.null(nrow(y))) y <- treedata(tree, y, sort = TRUE)[[2]][,1] else y <- treedata(tree, y, sort = TRUE)[[2]]
     # Rrts<-list()
     # if(is.null(cov))
     # {

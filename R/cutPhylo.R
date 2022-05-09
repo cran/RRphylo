@@ -45,11 +45,9 @@ cutPhylo<-function(tree,age=NULL,node=NULL,keep.lineage=TRUE){
          call. = FALSE)
   }
 
-  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
-    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
-    tree$tip.label<-tips(tree,(Ntip(tree)+1))
-    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
-    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+  if(!identical(tree$edge[tree$edge[,2]<=Ntip(tree),2],seq(1,Ntip(tree)))){
+    tree$tip.label<-tree$tip.label[tree$edge[tree$edge[,2]<=Ntip(tree),2]]
+    tree$edge[tree$edge[,2]<=Ntip(tree),2]<-seq(1,Ntip(tree))
   }
 
   distNodes(tree,(Ntip(tree)+1))->dN
@@ -64,8 +62,8 @@ cutPhylo<-function(tree,age=NULL,node=NULL,keep.lineage=TRUE){
     tt$edge.length[match(match(names(ddcut),tt$tip.label),tt$edge[,2])]<-
       tt$edge.length[match(match(names(ddcut),tt$tip.label),tt$edge[,2])]-(ddcut-cutT)
   }else{
-  ### Tips and nodes ###
-  #if(any(suppressWarnings(as.numeric(cutter))>Ntip(tree))){
+    ### Tips and nodes ###
+    #if(any(suppressWarnings(as.numeric(cutter))>Ntip(tree))){
     as.numeric(cutter[which(suppressWarnings(as.numeric(cutter))>Ntip(tree))])->cutn
     i=1
     while(i<=length(cutn)){

@@ -333,7 +333,8 @@ evo.dir<-function(RR,
 
     match.arg(y.type)
     if(y.type=="original"){
-      y <- treedata(RR$tree, y, sort = TRUE)[[2]]
+      # y <- treedata(RR$tree, y, sort = TRUE)[[2]]
+      y <- treedataMatch(RR$tree, y)[[1]]
       y->tipP
       RR$aces->ancP
       rbind(ancP,tipP)->phen

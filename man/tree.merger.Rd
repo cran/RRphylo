@@ -39,8 +39,7 @@ examples). If no calibration date for nodes is supplied, the function may
 shift the node position back in time as to place new tips/clades and to fit
 tip ages.}
 
-\item{min.branch}{as in \code{scaleTree}, the minimum branch length that will
-be imposed for shifted nodes.}
+\item{min.branch}{has been deprecated.}
 
 \item{plot}{if \code{TRUE}, the function produces an interactive plotting
 device to check the placing of each \code{bind}.}
@@ -72,7 +71,6 @@ The function attaches tips and/or clades from the \code{source} tree
 \examples{
  \dontrun{
  require(ape)
- require(geiger)
  DataCetaceans$treecet->tree
  data.frame(bind=c("Balaena_mysticetus-Caperea_marginata",
                    "Aetiocetus_weltoni",
@@ -135,7 +133,10 @@ The function attaches tips and/or clades from the \code{source} tree
    }
 }
 \references{
-aaa
+Castiglione, S., Serio, C., Mondanaro, A., Melchionna, M., &
+  Raia, P. (2022). Fast production of large, time-calibrated, informal
+  supertrees with tree.merger. \emph{Palaeontology}, 65:
+  e12588.https://doi.org/10.1111/pala.12588
 }
 \seealso{
 \href{../doc/Tree-Manipulation.html#tree.merger.html}{\code{tree.merger}

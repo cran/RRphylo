@@ -111,7 +111,7 @@ Schlager, S. (2017). \emph{Morpho and Rvcg–Shape Analysis in R:
   Melchionna, M., Profico, A., Castiglione, S., Serio, C., Mondanaro,
   A., Modafferi, M., Tamagnini, D., Maiorano, L. , Raia, P., Witmer, L.M.,
   Wroe, S., & Sansalone, G. (2021). A method for mapping morphological
-  convergence on three‐dimensional digital models: the case of the mammalian
+  convergence on three-dimensional digital models: the case of the mammalian
   sabre-tooth. Palaeontology, 64, 573–584. doi:10.1111/pala.12542
 }
 \seealso{

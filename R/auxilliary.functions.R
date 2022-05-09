@@ -108,9 +108,9 @@ Plot_ConvexHull<-function(xcoord, ycoord, lcolor,lwd=NULL, lty=NULL,col.p=NULL){
 
 dosur <- function(scores,pcs,sel=NULL,mshape,radius=0){
   if(is.null(sel)==TRUE) {
-    temp<-Morpho::showPC(scores,pcs,mshape)
+    temp<-Morpho::restoreShapes(scores,pcs,mshape)
   } else {
-    temp<-Morpho::showPC(scores[sel],pcs[,sel],mshape)
+    temp<-Morpho::restoreShapes(scores[sel],pcs[,sel],mshape)
   }
   mshape<-Rvcg::vcgBallPivoting(mshape, radius = radius)
   sur<-mshape

@@ -84,7 +84,7 @@ Schlager, S. (2017). \emph{Morpho and Rvcg-Shape Analysis in R:
   Press.
   Castiglione, S., Melchionna, M., Profico, A., Sansalone, G.,
   Modafferi, M., Mondanaro, A., Wroe, S., Piras, P., & Raia, P. (2021). Human
-  face-off: a new method for mapping evolutionary rates on three‐dimensional
+  face-off: a new method for mapping evolutionary rates on three-dimensional
   digital models. Palaeontology. doi:10.1111/pala.12582
 }
 \seealso{

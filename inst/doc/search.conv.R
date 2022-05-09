@@ -23,7 +23,6 @@ require(RColorBrewer)
 require(rgl)
 require(ape)
 require(phytools)
-require(geiger)
 require(mvMORPH)
 
 theta<-function(a,b){
@@ -151,7 +150,8 @@ max(nodeHeights(t1))->nH1
 suppressWarnings(swapONE(t1)[[1]]->t1)
 drop.tip(t1,t1$tip.label[c(1,length(t1$tip.label))])->t1
 
-if(max(nodeHeights(t1))!=nH1) geiger:::rescale(t1,nH1,model = "depth")->t1
+# if(max(nodeHeights(t1))!=nH1) geiger:::rescale(t1,nH1,model = "depth")->t1
+if(max(nodeHeights(t1))!=nH1) rescaleRR(t1,height=nH1)->t1
 
 t1$root.edge<-data.frame(tree$edge,tree$edge.length)[which(
   data.frame(tree$edge,tree$edge.length)[,2]==n),3]
@@ -191,10 +191,12 @@ data.frame(tree$edge,tree$edge.length)[which(data.frame(tree$edge,
                                                         tree$edge.length)[,2]==at),3]->pos
 diff(dist.nodes(tree)[(Ntip(tree)+1),c(n,tar)])->dH
 if(dH>0) {
-  geiger:::rescale(t1,(abs(diff(c(max(nodeHeights(t1)),dH)))),model = "depth")->t1
+  #geiger:::rescale(t1,(abs(diff(c(max(nodeHeights(t1)),dH)))),model = "depth")->t1
+  rescaleRR(t1,height=(abs(diff(c(max(nodeHeights(t1)),dH)))))->t1
   t1$root.edge+pos/2->t1$root.edge
 }else{
-  geiger:::rescale(t1,(max(nodeHeights(t1))+abs(dH)),model = "depth")->t1
+  # geiger:::rescale(t1,(max(nodeHeights(t1))+abs(dH)),model = "depth")->t1
+  rescaleRR(t1,height=(max(nodeHeights(t1))+abs(dH)))->t1
   t1$root.edge+pos/2->t1$root.edge
 }
 
@@ -582,7 +584,6 @@ RR=RR;y=y;min.dim=3;max.dim=4;min.dist=NULL;nsim=100;rsim=100;foldername=getwd()
 
 {
   require(ape)
-  require(geiger)
   require(phytools)
   require(vegan)
   require(cluster)
@@ -693,7 +694,8 @@ Plot_ConvexHull<-function(xcoord, ycoord, lcolor,lwd=NULL, lty=NULL,col.p=NULL){
   RR$tree->tree1
   RR$aces->RRaces
   
-  y <- treedata(tree1, y, sort = TRUE)[[2]]
+  # y <- treedata(tree1, y, sort = TRUE)[[2]]
+  y <- treedataMatch(tree1, y)[[1]]
   
   RR$tip.path->L
   RR$rates->betas
@@ -1283,7 +1285,8 @@ tree=tree;y=y;state=state;nsim=100
   
   tree->tree1
   #if (inherits(y,"data.frame"))
-  y <- treedata(tree1, y, sort = TRUE)[[2]]
+  # y <- treedata(tree1, y, sort = TRUE)[[2]]
+  y <- treedataMatch(tree1, y)[[1]]
   
   state[match(rownames(y),names(state))]->state
   if("nostate"%in%state) state[-which(state=="nostate")]->state.real else state->state.real

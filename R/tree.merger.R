@@ -28,8 +28,7 @@
 #'   examples). If no calibration date for nodes is supplied, the function may
 #'   shift the node position back in time as to place new tips/clades and to fit
 #'   tip ages.
-#' @param min.branch as in \code{scaleTree}, the minimum branch length that will
-#'   be imposed for shifted nodes.
+#' @param min.branch has been deprecated.
 #' @param plot if \code{TRUE}, the function produces an interactive plotting
 #'   device to check the placing of each \code{bind}.
 #' @param filename if \code{plot=TRUE} and provided a \code{filename} (with or
@@ -54,11 +53,13 @@
 #' \href{../doc/Tree-Manipulation.html#tree.merger.html}{\code{tree.merger}
 #' vignette}; \href{../doc/Tree-Manipulation.html#scaleTree}{\code{scaleTree}
 #' vignette};
-#' @references aaa
+#' @references Castiglione, S., Serio, C., Mondanaro, A., Melchionna, M., &
+#'   Raia, P. (2022). Fast production of large, time-calibrated, informal
+#'   supertrees with tree.merger. \emph{Palaeontology}, 65:
+#'   e12588.https://doi.org/10.1111/pala.12588
 #' @examples
 #'  \dontrun{
 #'  require(ape)
-#'  require(geiger)
 #'  DataCetaceans$treecet->tree
 #'  data.frame(bind=c("Balaena_mysticetus-Caperea_marginata",
 #'                    "Aetiocetus_weltoni",
@@ -137,6 +138,10 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
          call. = FALSE)
   }
 
+  if(!missing(min.branch)){
+    warning("The argument min.branch is deprecated.",immediate. = TRUE)
+  }
+
   backbone->tree
   data->dat
   source.tree->tree2
@@ -148,7 +153,7 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
     H+abs(age.offset)->Hset
   }else H->Hset
 
-  if(is.null(min.branch)) min(tree$edge.length)->min.branch
+  # if(is.null(min.branch)) min(tree$edge.length)->min.branch
 
   ### Check data ###
   if(!all(colnames(dat)%in%c("bind","reference","poly"))) {
@@ -204,6 +209,20 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
     }
   }
 
+  if(!is.null(tree2)){
+    dat$MRCAbind<-NA
+    sapply(dat[which(dat$bind.type==2),]$bind.tips,function(x) getMRCA(tree2,x))->dat$MRCAbind[which(dat$bind.type==2)]
+
+    if(any(dat$bind.type==2)){
+      unlist(sapply(dat[which(dat$bind.type==2),]$MRCAbind,function(x) tree$tip.label[which(tree$tip.label%in%tips(tree2,x))]))->remt
+      if(length(remt)>0){
+        drop.tip(tree,remt)->tree
+        ages[-match(remt,names(ages))]->ages
+        warning(paste(paste(remt,collapse=", "),"already on the source tree: removed from the backbone tree"),immediate. = TRUE)
+      }
+    }
+  }
+
   ### ordering ###
   strsplit(dat$reference,"-")->refs
   dat$ref.tree1<-NA
@@ -222,6 +241,7 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
     if(any(dat.new[,6]%in%unlist(dat.new$bind.tips)|dat.new[,7]%in%unlist(dat.new$bind.tips))){
       while(nrow(dat.new)>0){
         which(!(dat.new[,6]%in%unlist(dat.new$bind.tips)|dat.new[,7]%in%unlist(dat.new$bind.tips)))->outs
+        if(length(outs)<1) stop("Recursive species attachment: check rows ",paste(rownames(dat.new),collapse = ", ")," in data")
         dat[match(dat.new[outs,1],dat[,1]),]$ref.tree1<-max(dat$ref.tree1,na.rm=TRUE)+1:length(outs)
         dat.new[-outs,]->dat.new
       }
@@ -233,20 +253,6 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
   }
 
   dat[order(dat$ref.tree1),]->dat
-
-  if(!is.null(tree2)){
-    dat$MRCAbind<-NA
-    sapply(dat[which(dat$bind.type==2),]$bind.tips,function(x) getMRCA(tree2,x))->dat$MRCAbind[which(dat$bind.type==2)]
-
-    if(any(dat$bind.type==2)){
-      unlist(sapply(dat[which(dat$bind.type==2),]$MRCAbind,function(x) tree$tip.label[which(tree$tip.label%in%tips(tree2,x))]))->remt
-      if(length(remt)>0){
-        drop.tip(tree,remt)->tree
-        ages[-match(remt,names(ages))]->ages
-        warning(paste(paste(remt,collapse=", "),"already on the source tree: removed from the backbone tree"),immediate. = TRUE)
-      }
-    }
-  }
 
   ### binding ###
   for(k in 1:nrow(dat)){
@@ -268,19 +274,23 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
       if(isTRUE(dat$poly[k])){
         0->pos.ref
         if(where.ref==(Ntip(tree)+1)&&(max(diag(vcv(cla)))+max(diag(vcv(cla)))/10)>H)
-          rescale(cla,"depth",(H+max(diag(vcv(cla)))/10))->cla else
+          # rescale(cla,"depth",(H+max(diag(vcv(cla)))/10))->cla else
+          rescaleRR(cla,height=(H+max(diag(vcv(cla)))/10))->cla else
             if(where.ref!=(Ntip(tree)+1)&(max(diag(vcv(cla)))+max(diag(vcv(cla)))/10)>(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]))
-              rescale(cla,"depth",(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]+max(diag(vcv(cla)))/10))->cla
+              # rescale(cla,"depth",(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]+max(diag(vcv(cla)))/10))->cla
+              rescaleRR(cla,height=(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]+max(diag(vcv(cla)))/10))->cla
         cla$root.edge<-max(diag(vcv(cla)))/10
       }else {
         if(where.ref==(Ntip(tree)+1)) br.len/2->pos.ref else {
           max(diag(vcv(cla)))+br.len/2->Hcla
           if((H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2])<H/1000){
-            rescale(cla,"depth",br.len/4)->cla
+            # rescale(cla,"depth",br.len/4)->cla
+            rescaleRR(cla,height=br.len/4)->cla
             pos.ref<-br.len-br.len/4
           }else{
             if(Hcla>(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),1])){
-              rescale(cla,"depth",(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]))->cla
+              # rescale(cla,"depth",(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]))->cla
+              rescaleRR(cla,height=(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]))->cla
               pos.ref<-br.len/2
             }else if(Hcla>(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2]))
               (max(diag(vcv(cla)))+br.len/2)-(H-nodeHeights(tree)[which(tree$edge[,2]==where.ref),2])->pos.ref else br.len/2->pos.ref
@@ -341,7 +351,7 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
   if(max(diag(vcv(tree)))>H&&(!(Ntip(tree)+1)%in%names(node.ages)))
     warning(paste("Root age not indicated: the tree root arbitrarily set at",round(max(diag(vcv(tree))),2)),immediate.=TRUE)
 
-  scaleTree(tree,node.ages=node.ages,tip.ages =tip.ages,min.branch=min.branch)->tree.final->tree.plot
+  scaleTree(tree,node.ages=node.ages,tip.ages =tip.ages)->tree.final->tree.plot
 
   if(isTRUE(plot)){
     if(any(dat$bind.type==2)) lapply(dat$MRCAbind[which(dat$bind.type==2)],function(x)

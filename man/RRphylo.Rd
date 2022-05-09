@@ -10,10 +10,9 @@ RRphylo(tree,y,cov=NULL,rootV=NULL,aces=NULL,x1=NULL,aces.x1=NULL,clus=0.5)
 \item{tree}{a phylogenetic tree. The tree needs not to be ultrametric or
 fully dichotomous.}
 
-\item{y}{either a single vector variable or a multivariate dataset of class
-\sQuote{matrix}. In any case, \code{y} must be named. In case of
-categorical variable, this sholud be supplied to the function as a numeric
-vector.}
+\item{y}{either a single vector variable or a multivariate dataset. In any
+case, \code{y} must be named. In case of categorical variable, this should
+be supplied to the function as a numeric vector.}
 
 \item{cov}{the covariate to be indicated if its effect on the rates must be
 accounted for. In this case residuals of the covariate versus the rates are
@@ -140,7 +139,7 @@ RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RR
 
 # Case 5. Categorical and multiple "RRphylo" with 2 additional predictors
 library(phytools)
-library(geiger)
+# library(geiger)
 
 set.seed(1458)
 rtree(50)->tree
@@ -185,13 +184,14 @@ Melchionna, M., Mondanaro, A., Serio, C., Castiglione, S., Di
 Castiglione, S., Serio, C., Mondanaro, A., Melchionna, M.,
   Carotenuto, F., Di Febbraro, M., Profico, A., Tamagnini, D., & Raia, P.
   (2020). Ancestral State Estimation with Phylogenetic Ridge Regression.
-  \emph{Evolutionary Biology}, 47 (3), 220-232. doi:10.1007/s11692-020-09505-x
+  \emph{Evolutionary Biology}, 47: 220-232.
+  doi:10.1007/s11692-020-09505-x
 
 Castiglione, S., Serio, C., Piccolo, M., Mondanaro, A.,
   Melchionna, M., Di Febbraro, M., Sansalone, G., Wroe, S., & Raia, P.
   (2020). The influence of domestication, insularity and sociality on the
   tempo and mode of brain size evolution in mammals. \emph{Biological Journal
-  of the Linnean Society},in press. doi:10.1093/biolinnean/blaa186
+  of the Linnean Society},132: 221-231. doi:10.1093/biolinnean/blaa186
 }
 \author{
 Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro

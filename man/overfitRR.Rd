@@ -174,15 +174,13 @@ overfitRR(RR=dinoRates,y=massdino,swap.args =list(si=0.2,si2=0.2),
           nsim=10,clus=cc)->orr.ss
 
 # Case 2 search.trend on the entire tree
-search.trend(RR=RRptero, y=log(massptero),nsim=100,clus=cc,cov=NULL,node=NULL,
-             filename=paste(tempdir(),"STtree",sep="/"),ConfInt=FALSE)->STtree
+search.trend(RR=RRptero, y=log(massptero),nsim=100,clus=cc,cov=NULL,node=NULL)->STtree
 
 overfitRR(RR=RRptero,y=log(massptero),swap.args =list(si=0.2,si2=0.2),
           trend.args = list(),nsim=10,clus=cc)->orr.st1
 
 # Case 3 search.trend at specified nodescov=NULL,
-search.trend(RR=RRptero, y=log(massptero),node=143,clus=cc,
-             filename=paste(tempdir(),"STtree",sep="/"),ConfInt=FALSE)->STnode
+search.trend(RR=RRptero, y=log(massptero),node=143,clus=cc)->STnode
 
 overfitRR(RR=RRptero,y=log(massptero),
           trend.args = list(node=143),nsim=10,clus=cc)->orr.st2

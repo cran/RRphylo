@@ -4,7 +4,7 @@
 #'   states.
 #' @usage search.conv(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 #'   min.dim=NULL,max.dim=NULL,min.dist=NULL,declust=FALSE,nsim=1000,rsim=1000,
-#'    clus=.5,foldername=NULL,filename)
+#'    clus=.5,filename)
 #' @param RR an object produced by \code{\link{RRphylo}}. This is not indicated
 #'   if convergence among states is tested.
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric or
@@ -60,18 +60,15 @@
 #'   distribution of theta values. It is set at 1000 by default.
 #' @param clus the proportion of clusters to be used in parallel computing. To
 #'   run the single-threaded version of \code{search.conv} set \code{clus} = 0.
-#' @param foldername has been deprecated; please see the argument
-#'   \code{filename} instead.
 #' @param filename a character indicating the name of the pdf file and the path
 #'   where it is to be saved. If no path is indicated the file is stored in the
 #'   working directory
 #' @export
 #' @seealso \href{../doc/search.conv.html}{\code{search.conv} vignette}
-#' @importFrom grDevices chull
+#' @importFrom grDevices chull rgb
 #' @importFrom graphics axis layout lines segments
 #' @importFrom stats TukeyHSD aov princomp
 #' @importFrom ape vcv cophenetic.phylo
-#' @importFrom grDevices rgb
 #' @return If convergence between clades is tested, the function returns a list
 #'   including:
 #' @return \itemize{\item\strong{$node pairs}: a dataframe containing for each
@@ -150,7 +147,7 @@
 
 search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
                       min.dim=NULL,max.dim=NULL,min.dist=NULL,
-                      declust=FALSE,nsim=1000,rsim=1000,clus=.5,foldername=NULL,
+                      declust=FALSE,nsim=1000,rsim=1000,clus=.5,
                       filename)
 {
   # require(ape)
@@ -183,11 +180,6 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
   if (!requireNamespace("RColorBrewer", quietly = TRUE)) {
     stop("Package \"RColorBrewer\" needed for this function to work. Please install it.",
          call. = FALSE)
-  }
-
-  if(!missing(foldername)){
-    stop("argument foldername is deprecated; please use filename instead.",
-            call. = FALSE)
   }
 
   phylo.run.test<-function(tree,state,st,nsim=100){
@@ -245,7 +237,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
     }
 
     #if (inherits(y,"data.frame"))
-    y <- treedata(tree1, y, sort = TRUE)[[2]]
+    # y <- treedata(tree1, y, sort = TRUE)[[2]]
+    y <- treedataMatch(tree1, y)[[1]]
 
     RR$tip.path->L
     RR$rates->betas
@@ -305,7 +298,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
         cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
       registerDoParallel(cl)
       res <- foreach(i = 1:(length(nod)-1),
-                     .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
+                     .packages = c("ape", "phytools", "doParallel")) %dopar%
         {
           gc()
           nod[i]->sel1
@@ -447,7 +440,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
         cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
       registerDoParallel(cl)
       res.ran <- foreach(k = 1:nsim,
-                         .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
+                         .packages = c("ape", "phytools", "doParallel")) %dopar%
         {
           gc()
 
@@ -660,7 +653,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
         cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
       registerDoParallel(cl)
       res <- foreach(i = 1:length(nod),
-                     .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
+                     .packages = c("ape", "phytools", "doParallel")) %dopar%
         {
 
           gc()
@@ -779,7 +772,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
         cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
       registerDoParallel(cl)
       res.ran <- foreach(k = 1:nsim,
-                         .packages = c("ape", "geiger", "phytools", "doParallel")) %dopar%
+                         .packages = c("ape", "phytools", "doParallel")) %dopar%
         {
           gc()
 
@@ -1042,7 +1035,8 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
     tree->tree1
     #if (inherits(y,"data.frame"))
-    y <- treedata(tree1, y, sort = TRUE)[[2]]
+    # y <- treedata(tree1, y, sort = TRUE)[[2]]
+    y <- treedataMatch(tree1, y)[[1]]
 
     state[match(rownames(y),names(state))]->state
     if("nostate"%in%state) state[-which(state=="nostate")]->state.real else state->state.real
@@ -1152,12 +1146,12 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 
       par(cex.axis=.75)
       plotrix::polar.plot(lengths=c(0,mean(unname(as.matrix(ccc)[c(3,4)])),mean(unname(as.matrix(ccc)[c(3,4)]))),
-                 polar.pos = c(0,ccc[7],ccc[8]),rp.type="p",line.col=rgb(0,0,0,0.6),
-                 poly.col=rgb(127/255,127/255,127/255,0.4),start=90,radial.lim=range(0,max(ccc[c(3,4)])),radial.labels=""
-                 ,boxed.radial = FALSE,mar=c(1,1,2,1),label.pos=lp,labels=lbs)
+                          polar.pos = c(0,ccc[7],ccc[8]),rp.type="p",line.col=rgb(0,0,0,0.6),
+                          poly.col=rgb(127/255,127/255,127/255,0.4),start=90,radial.lim=range(0,max(ccc[c(3,4)])),radial.labels=""
+                          ,boxed.radial = FALSE,mar=c(1,1,2,1),label.pos=lp,labels=lbs)
       title(main=onestate,cex.main = 2)
       plotrix::polar.plot(lengths=c(0,ccc[3],ccc[4]),polar.pos = c(0,ccc[5],ccc[6]),
-                 line.col="blue",lwd=4,start=90,add=TRUE,radial.labels="",boxed.radial = FALSE)
+                          line.col="blue",lwd=4,start=90,add=TRUE,radial.labels="",boxed.radial = FALSE)
       text(paste("p-value = ",ccc[9]),x=0,y=-max(ccc[c(3,4)])/2.3,cex=1.5,col="red")
 
       dev.off()
@@ -1195,7 +1189,7 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
                        length(table(state))==length(table(state[-which(names(state)%in%dec)]))) break
                   }else break
                 }),silent=TRUE)->rep.try
-                if(class(rep.try)=="try-error") decl[[k]]<-NA else decl[[k]]<-dec
+                if(inherits(rep.try,"try-error")) decl[[k]]<-NA else decl[[k]]<-dec
                 setTimeLimit(elapsed=Inf)
               }else decl[[k]]<-NA
             }
@@ -1348,12 +1342,12 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
       for(i in 1:nrow(res.tot)){
         par(cex.axis=.75)
         plotrix::polar.plot(lengths=c(0,mean(unname(as.matrix(ccc)[i,c(3,4)])),mean(unname(as.matrix(ccc)[i,c(3,4)]))),
-                   polar.pos = c(0,ccc[i,7],ccc[i,8]),rp.type="p",line.col=rgb(0,0,0,0.6),
-                   poly.col=rgb(127/255,127/255,127/255,0.4),start=90,radial.lim=range(0,max(ccc[,c(3,4)])),radial.labels=""
-                   ,boxed.radial = FALSE,mar=c(1,1,2,1),label.pos=lp,labels=lbs)
+                            polar.pos = c(0,ccc[i,7],ccc[i,8]),rp.type="p",line.col=rgb(0,0,0,0.6),
+                            poly.col=rgb(127/255,127/255,127/255,0.4),start=90,radial.lim=range(0,max(ccc[,c(3,4)])),radial.labels=""
+                            ,boxed.radial = FALSE,mar=c(1,1,2,1),label.pos=lp,labels=lbs)
         title(main=paste(as.character(res.tot[i,1]),as.character(res.tot[i,2]),sep="-"),cex.main = 2)
         plotrix::polar.plot(lengths=c(0,ccc[i,3],ccc[i,4]),polar.pos = c(0,ccc$l1[i],ccc$l2[i]),
-                   line.col="blue",lwd=4,start=90,add=TRUE,radial.labels="",boxed.radial = FALSE)
+                            line.col="blue",lwd=4,start=90,add=TRUE,radial.labels="",boxed.radial = FALSE)
         text(paste("p-value = ",ccc[i,9]),x=0,y=-max(ccc[i,c(3,4)])/2.3,cex=1.5,col="red")
       }
       dev.off()

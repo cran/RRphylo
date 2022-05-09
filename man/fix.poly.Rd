@@ -70,7 +70,7 @@ Castiglione, S., Serio, C., Piccolo, M., Mondanaro, A.,
   Melchionna, M., Di Febbraro, M., Sansalone, G., Wroe, S., & Raia, P.
   (2020). The influence of domestication, insularity and sociality on the
   tempo and mode of brain size evolution in mammals. \emph{Biological Journal
-  of the Linnean Society},in press. doi:10.1093/biolinnean/blaa186
+  of the Linnean Society},132: 221-231. doi:10.1093/biolinnean/blaa186
 }
 \seealso{
 \href{../doc/Tree-Manipulation.html#fix.poly}{\code{fix.poly}

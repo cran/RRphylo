@@ -16,7 +16,6 @@ options(rmarkdown.html_vignette.check_title = FALSE)
 ## ----echo=FALSE,message=FALSE,fig.dim=c(4,4),out.width="70%",dpi=220----------
 require(ape)
 require(phytools)
-require(geiger)
 require(scales)
 
 set.seed(22)
@@ -206,7 +205,6 @@ knitr::kable(tab2,digits=3,align="c", caption="single clades differences") %>%
 ## ----echo=FALSE,message=FALSE,fig.dim=c(4,4),out.width="60%",dpi=220,fig.align="center"----
 require(ape)
 require(phytools)
-require(geiger)
 require(scales)
 
 node = 159
@@ -259,7 +257,6 @@ text(labels=paste("p-value =",round(p.shift,3)),x=leaf2NC.diff-0.12,y=max(hi1$co
 ## ----echo=FALSE,message=FALSE,fig.dim=c(4,4),out.width='47%',dpi=220----------
 require(ape)
 require(phytools)
-require(geiger)
 require(scales)
 
 node = c(159,177)
@@ -376,7 +373,6 @@ par(mar = c(3, 2, 2, 1))
 ## ----echo=FALSE,message=FALSE,fig.dim=c(4,4),out.width="60%",dpi=220,fig.align="center"----
 require(ape)
 require(phytools)
-require(geiger)
 require(scales)
 
 set.seed(14)
@@ -425,7 +421,6 @@ text(labels=paste("p-value =",round(p.status.diff,3)),
 #,fig.align="center"}
 require(ape)
 require(phytools)
-require(geiger)
 require(scales)
 
 rep("a",100)->categ
@@ -524,7 +519,7 @@ DataOrnithodirans$massdino->massdino # body mass data
 DataOrnithodirans$statedino->statedino # locomotory type data
 log(massdino)->lmass
 
-require(geiger)
+
 require(plotrix)
 require(RColorBrewer)
 statedino->colo

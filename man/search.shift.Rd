@@ -5,7 +5,7 @@
 \title{Locating shifts in phenotypic evolutionary rates}
 \usage{
 search.shift(RR, status.type = c("clade", "sparse"),node = NULL, state
-  = NULL, cov = NULL, nrep = 1000, f = NULL,foldername=NULL,filename)
+  = NULL, cov = NULL, nrep = 1000, f = NULL,filename)
 }
 \arguments{
 \item{RR}{an object fitted by the function \code{\link{RRphylo}}.}
@@ -32,9 +32,6 @@ test, by default \code{nrep} is set at 1000.}
 
 \item{f}{the size of the smallest clade to be tested. By default, nodes
 subtending to one tenth of the tree tips are tested.}
-
-\item{foldername}{has been deprecated; please see the argument
-\code{filename} instead.}
 
 \item{filename}{a character indicating the name of the pdf file and the path
 where it is to be saved. If no path is indicated the file is stored in the

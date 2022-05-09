@@ -1,7 +1,7 @@
 #' @title Locating shifts in phenotypic evolutionary rates
 #'
 #' @usage search.shift(RR, status.type = c("clade", "sparse"),node = NULL, state
-#'   = NULL, cov = NULL, nrep = 1000, f = NULL,foldername=NULL,filename)
+#'   = NULL, cov = NULL, nrep = 1000, f = NULL,filename)
 #' @description The function \code{search.shift} (\cite{Castiglione et al.
 #'   2018}) tests whether individual clades or isolated tips dispersed through
 #'   the phylogeny evolve at different \code{\link{RRphylo}} rates as compared
@@ -25,14 +25,13 @@
 #'   test, by default \code{nrep} is set at 1000.
 #' @param f the size of the smallest clade to be tested. By default, nodes
 #'   subtending to one tenth of the tree tips are tested.
-#' @param foldername has been deprecated; please see the argument
-#'   \code{filename} instead.
 #' @param filename a character indicating the name of the pdf file and the path
 #'   where it is to be saved. If no path is indicated the file is stored in the
 #'   working directory
 #' @importFrom graphics symbols mtext
 #' @importFrom stats sd
 #' @importFrom utils globalVariables
+#' @importFrom grDevices	pdf	dev.off
 #' @export
 #' @seealso \href{../doc/search.shift.html}{\code{search.shift} vignette}
 #' @details The function \code{search.shift} takes the object produced by
@@ -174,7 +173,6 @@ search.shift<-function(RR,
                        cov=NULL,
                        nrep=1000,
                        f=NULL,
-                       foldername=NULL,
                        filename)
 {
   # require(phytools)
@@ -186,10 +184,6 @@ search.shift<-function(RR,
          call. = FALSE)
   }
 
-  if(!missing(foldername)){
-    stop("argument foldername is deprecated; please use filename instead.",
-         call. = FALSE)
-  }
 
   tree <- RR$tree
   rates <- RR$rates
@@ -439,7 +433,7 @@ search.shift<-function(RR,
       Cbranch <- unique(Cbranch)
       Cleaf <- c(Cbranch, Ctips)
       leaf.rates <- rates[match(Cleaf, rownames(rates)),
-                          ]
+      ]
       leaf.rates <- na.omit(leaf.rates)
       NCrates <- rates[-match(names(leaf.rates), rownames(rates))]
       leafR <- mean(abs(leaf.rates))
@@ -525,7 +519,7 @@ search.shift<-function(RR,
           Cbranch <- getDescendants(tree, node[i])
           Cleaf <- c(Cbranch, Ctips)
           leaf.rates <- rates[match(Cleaf, rownames(rates)),
-                              ]
+          ]
           leaf.rates <- na.omit(leaf.rates)
           NC <- rates[-c(which(rownames(rates) %in% names(leaf.rates)),
                          which(rownames(rates) %in% otmom)), ]
@@ -576,9 +570,10 @@ search.shift<-function(RR,
       }
     }
   } else {
-    state <- treedata(tree, state, sort = TRUE)[[2]][,1]
+    # state <- treedata(tree, state, sort = TRUE)[[2]][,1]
+    state <- treedataMatch(tree, state)[[1]][,1]
     frame <- data.frame(status = as.factor(state), rate = rates[match(names(state),
-                                                           rownames(rates))])
+                                                                      rownames(rates))])
     p.status.diff <- array()
     if (length(unique(state)) > 2) {
       status.diff <- apply(combn(tapply(abs(frame$rate),

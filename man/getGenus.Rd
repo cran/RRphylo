@@ -8,9 +8,11 @@ getGenus(tree,genera=NULL)
 }
 \arguments{
 \item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and
-fully dichotomous.}
+fully dichotomous. Generic name and specific epithet must be separated by
+'_'.}
 
-\item{genera}{a character vector including one or more genera to focus on.}
+\item{genera}{a character vector including one or more genera to focus on.
+Please notice the function is case sensitive.}
 }
 \value{
 The function returns a data-frame including the number of species and

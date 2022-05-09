@@ -36,7 +36,8 @@ phyloclust<-function(tree,state,focal,nsim=100){
   #   tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
   # }
 
-  state <- treedata(tree, state, sort = TRUE)[[2]][,1]
+  # state <- treedata(tree, state, sort = TRUE)[[2]][,1]
+  state <- treedataMatch(tree, state)[[1]][,1]
   focal->st
   cophenetic.phylo(tree)->cop
   cop[which(state==st),which(state==st)]->subcop

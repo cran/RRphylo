@@ -31,7 +31,7 @@
 #'   Melchionna, M., Di Febbraro, M., Sansalone, G., Wroe, S., & Raia, P.
 #'   (2020). The influence of domestication, insularity and sociality on the
 #'   tempo and mode of brain size evolution in mammals. \emph{Biological Journal
-#'   of the Linnean Society},in press. doi:10.1093/biolinnean/blaa186
+#'   of the Linnean Society},132: 221-231. doi:10.1093/biolinnean/blaa186
 #' @examples
 #' \dontrun{
 #'  require(ape)
@@ -57,16 +57,20 @@
 #'  plot(treecet,no.margin=TRUE,show.tip.label=FALSE)
 #'  plot(treecet.collapsed,no.margin=TRUE,show.tip.label=FALSE)
 #' }
+
+
 fix.poly<-function(tree,type=c("collapse","resolve"),node=NULL,tol=1e-10,random=TRUE){
   # require(ape)
   # require(phytools)
   # require(geiger)
 
-  if(!identical(tree$tip.label,tips(tree,(Ntip(tree)+1)))){
-    data.frame(tree$tip.label,N=seq(1,Ntip(tree)))->dftips
-    tree$tip.label<-tips(tree,(Ntip(tree)+1))
-    data.frame(dftips,Nor=match(dftips[,1],tree$tip.label))->dftips
-    tree$edge[match(dftips[,2],tree$edge[,2]),2]<-dftips[,3]
+  if(any(tree$edge.length[which(tree$edge[,2]<=Ntip(tree))]==0))
+    stop("Zero-length leaves are not allowed.
+         Suggested adding an infinitesimal quantity to all the branches in the tree.")
+
+  if(!identical(tree$edge[tree$edge[,2]<=Ntip(tree),2],seq(1,Ntip(tree)))){
+    tree$tip.label<-tree$tip.label[tree$edge[tree$edge[,2]<=Ntip(tree),2]]
+    tree$edge[tree$edge[,2]<=Ntip(tree),2]<-seq(1,Ntip(tree))
   }
 
   tree->treeN
@@ -165,7 +169,7 @@ fix.poly<-function(tree,type=c("collapse","resolve"),node=NULL,tol=1e-10,random=
         nodages[which(names(nodages)==mom)]<-nodages[i]+fix.val
     }
 
-    suppressWarnings(scaleTree(xtree,tip.ages=f2,node.ages=nodages,min.branch=min(xtree$edge.length)/max(apply(makeL(xtree),1,function(x) length(which(x!=0)))))->xtree)
+    suppressWarnings(scaleTree(xtree,tip.ages=f2,node.ages=nodages)->xtree)
   }
   return(xtree)
 }

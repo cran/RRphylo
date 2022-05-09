@@ -6,7 +6,7 @@
 \usage{
 search.conv(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
   min.dim=NULL,max.dim=NULL,min.dist=NULL,declust=FALSE,nsim=1000,rsim=1000,
-   clus=.5,foldername=NULL,filename)
+   clus=.5,filename)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}. This is not indicated
@@ -76,9 +76,6 @@ distribution of theta values. It is set at 1000 by default.}
 
 \item{clus}{the proportion of clusters to be used in parallel computing. To
 run the single-threaded version of \code{search.conv} set \code{clus} = 0.}
-
-\item{foldername}{has been deprecated; please see the argument
-\code{filename} instead.}
 
 \item{filename}{a character indicating the name of the pdf file and the path
 where it is to be saved. If no path is indicated the file is stored in the
