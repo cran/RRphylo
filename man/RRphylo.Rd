@@ -139,7 +139,6 @@ RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RR
 
 # Case 5. Categorical and multiple "RRphylo" with 2 additional predictors
 library(phytools)
-# library(geiger)
 
 set.seed(1458)
 rtree(50)->tree

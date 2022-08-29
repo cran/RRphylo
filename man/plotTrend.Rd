@@ -12,28 +12,59 @@ plotTrend(ST)
 \value{
 The function returns a list of functions:
 
-\strong{$plotPhen} returns the plot of rescaled phenotype versus age
+\strong{\code{$plotSTphen}} returns the plot of rescaled phenotype versus age
  regression. The 95\% confidence intervals of slopes produced by regressing
- phenotypes simulated under the Brownian motion are plotted as a shaded area.
+ phenotypes simulated under the Brownian motion are plotted as a polygon. The
+ usage is
+ \code{...$plotSTphen(variable,plot.args=NULL,polygon.args=NULL,line.args=NULL)},
+  where \code{variable} is the index or name of the variable to be plotted,
+ \code{plot.args} is a list of further arguments passed to the function
+ \code{plot}, \code{polygon.args} is a list of further arguments passed to
+ the function \code{polygon}, and \code{line.args} is a list of further
+ arguments passed to the function \code{lines}. The functions automatically
+ plots white points for internal nodes, red points for tips, a blue
+ regression line, and a gray shaded polygon to represent the 95\% confidence
+ intervals of Brownian motion slopes.
 
-\strong{$plotRates} returns the plot of log rescaled rates versus age
+\strong{\code{$plotSTrates}} returns the plot of log rescaled rates versus age
  regression. The 95\% confidence intervals of slopes produced by regressing
- rates simulated under the Brownian motion are plotted as a shaded area.
+ rates simulated under the Brownian motion are plotted as a shaded area. The
+ arguments are the same as described for \code{$plotSTphen}. In the case of
+ multivariate \code{y}, the 2-norm vector of multiple rates (see
+ \code{\link{RRphylo}} for details) can be plotted by setting \code{variable
+ = "rate"} or \code{variable = } the number of actual variables + 1.
 
-\strong{$plotPhenNode} returns plots of rescaled phenotype versus age
- regression for individual clades. For each plot, the gray line represents
- the slope of phenotype versus age regression for the rest of the tree.
+\strong{\code{$plotSTphenNode}} returns plots of rescaled phenotype versus age
+ regression for individual clades. The usage is
+ \code{...$plotSTphenNode(variable,node,plot.args=NULL,lineTree.args=NULL,}
+ \code{lineNode.args=NULL,node.palette=NULL)}, where \code{variable} is the
+ same as \code{plotSTphen} and \code{node} is the vector of indices or numbers
+ (as inputted to \code{search.trend}, to be indicated as character) of nodes
+ to be plotted. The function allows up to nine nodes at the same time.
+ \code{plot.args} is a list of further arguments passed to the function
+ \code{plot}, including \code{pch.node}, a custom argument to set individual
+ \code{pch} at nodes (its length can be one or as long as the number of
+ nodes). \code{lineTree.args} is a list of further arguments passed to the
+ function \code{lines} used to plot the regression line for the entire tree
+ \code{lineNode.args} is a list of further arguments passed to the function
+ \code{lines} used to plot the regression line for individual nodes.
+ \code{node.palette} is the vector of colors specific to nodes points and
+ lines. Its length can be one or as long as the number of nodes.
 
-\strong{$plotRatesNode} returns plots of absolute rates versus age
- regression for individual clades. For each plot, the gray line represents
- the slope of absolute rates versus age regression for the rest of the tree.
+\strong{\code{$plotSTratesNode}} returns plots of absolute rates versus age
+ regression for individual clades. The arguments are the same as described
+ for \code{$plotSTphenNode}. In the case of multivariate \code{y}, the 2-norm
+ vector of multiple rates (see \code{\link{RRphylo}} for details) can be
+ plotted by setting \code{variable = "rate"} or \code{variable = } the number
+ of actual variables + 1.
 }
 \description{
 This function generates customized functions to produce plots of
  phenotype versus time and absolute evolutionary rates versus time
  regressions for the entire phylogeny and individual clades. Each custom
- function takes as the only argument the index or name of the variable (as
- in the \code{search.trend} output in \code{$trends.data$phenotypeVStime}) to be plotted.
+ function takes as first argument the index or name of the variable (as in
+ the \code{search.trend} output in \code{$trends.data$phenotypeVStime}) to be
+ plotted.
 }
 \examples{
  \dontrun{
@@ -52,15 +83,20 @@ RRphylo(tree=treeptero,y=log(massptero))->RRptero
 
 search.trend(RR=RRptero, y=log(massptero), nsim=100, node=143, clus=cc,cov=NULL)->ST
 
-plotTrends(ST)->plotST
+plotTrend(ST)->plotST
 
-plotST$plotPhen(1) # to plot phenotypic trend through time for entire tree
-plotST$plotPhen("y") # equivalent to the previuous line
+plotST$plotSTphen(1) # to plot phenotypic trend through time for entire tree
+plotST$plotSTphen("log(massptero)",plot.args=list(cex=1.2,col="blue")) # equivalent to above
 
-plotST$plotRates(1) # to plot rates trend through time for entire tree
+plotST$plotSTrates(1) # to plot rates trend through time for entire tree
 
-plotST$plotPhenNode("y") # to plot phenotypic trend through time for the clade
-plotST$plotRatesNode("y") # to plot rates trend through time for the clade
+# to plot phenotypic trend through time for the clade
+plotST$plotSTphenNode("log(massptero)",plot.args=list(xlab="Age",main="Phenotypic trend"),
+                    lineTree.args=list(lty=1,col="pink"),lineNode.args=list(lwd=3),
+                    node.palette=c("chartreuse"))
+
+# to plot rates trend through time for the clade
+plotST$plotSTratesNode("rate")
 
    }
 }
@@ -73,7 +109,9 @@ Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M.,
 }
 \seealso{
 \href{../doc/search.trend.html}{\code{search.trend} vignette}
+
+\href{../doc/Plotting-tools.html}{\code{plotTrend} vignette}
 }
 \author{
-Silvia Castiglione, Carmela Serio, Pasquale Raia
+Silvia Castiglione, Carmela Serio
 }

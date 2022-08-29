@@ -125,7 +125,6 @@ tree.merger<-function(backbone,data,source.tree=NULL,age.offset=NULL,
                       tip.ages = NULL, node.ages = NULL,min.branch=NULL,plot=TRUE,filename=NULL){
   # require(ape)
   # require(phytools)
-  # require(geiger)
   # require(manipulate)
 
   if (!requireNamespace("manipulate", quietly = TRUE)) {

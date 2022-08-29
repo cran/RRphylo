@@ -31,7 +31,7 @@
 
 
 treedataMatch<-function (tree, y){
-  if(!inherits(y,"matrix")) as.matrix(y)->y
+  if(!inherits(y,"matrix")&!inherits(y,"data.frame")) as.matrix(y)->y
   if(is.null(rownames(y))) stop("y needs to be named") else rownames(y)->ynams
   if(all(!tree$tip.label%in%ynams)) stop("There is no match between tree tip labels and y names")
 

@@ -2,27 +2,59 @@
 #'@description This function generates customized functions to produce plots of
 #'  phenotype versus time and absolute evolutionary rates versus time
 #'  regressions for the entire phylogeny and individual clades. Each custom
-#'  function takes as the only argument the index or name of the variable (as
-#'  in the \code{search.trend} output in \code{$trends.data$phenotypeVStime}) to be plotted.
+#'  function takes as first argument the index or name of the variable (as in
+#'  the \code{search.trend} output in \code{$trends.data$phenotypeVStime}) to be
+#'  plotted.
 #'@usage plotTrend(ST)
 #'@param ST an object produced by \code{\link{search.trend}}.
 #'@return The function returns a list of functions:
-#'@return \strong{$plotPhen} returns the plot of rescaled phenotype versus age
+#'@return \strong{\code{$plotSTphen}} returns the plot of rescaled phenotype versus age
 #'  regression. The 95\% confidence intervals of slopes produced by regressing
-#'  phenotypes simulated under the Brownian motion are plotted as a shaded area.
-#'@return \strong{$plotRates} returns the plot of log rescaled rates versus age
+#'  phenotypes simulated under the Brownian motion are plotted as a polygon. The
+#'  usage is
+#'  \code{...$plotSTphen(variable,plot.args=NULL,polygon.args=NULL,line.args=NULL)},
+#'   where \code{variable} is the index or name of the variable to be plotted,
+#'  \code{plot.args} is a list of further arguments passed to the function
+#'  \code{plot}, \code{polygon.args} is a list of further arguments passed to
+#'  the function \code{polygon}, and \code{line.args} is a list of further
+#'  arguments passed to the function \code{lines}. The functions automatically
+#'  plots white points for internal nodes, red points for tips, a blue
+#'  regression line, and a gray shaded polygon to represent the 95\% confidence
+#'  intervals of Brownian motion slopes.
+#'@return \strong{\code{$plotSTrates}} returns the plot of log rescaled rates versus age
 #'  regression. The 95\% confidence intervals of slopes produced by regressing
-#'  rates simulated under the Brownian motion are plotted as a shaded area.
-#'@return \strong{$plotPhenNode} returns plots of rescaled phenotype versus age
-#'  regression for individual clades. For each plot, the gray line represents
-#'  the slope of phenotype versus age regression for the rest of the tree.
-#'@return \strong{$plotRatesNode} returns plots of absolute rates versus age
-#'  regression for individual clades. For each plot, the gray line represents
-#'  the slope of absolute rates versus age regression for the rest of the tree.
-#'@author Silvia Castiglione, Carmela Serio, Pasquale Raia
+#'  rates simulated under the Brownian motion are plotted as a shaded area. The
+#'  arguments are the same as described for \code{$plotSTphen}. In the case of
+#'  multivariate \code{y}, the 2-norm vector of multiple rates (see
+#'  \code{\link{RRphylo}} for details) can be plotted by setting \code{variable
+#'  = "rate"} or \code{variable = } the number of actual variables + 1.
+#'@return \strong{\code{$plotSTphenNode}} returns plots of rescaled phenotype versus age
+#'  regression for individual clades. The usage is
+#'  \code{...$plotSTphenNode(variable,node,plot.args=NULL,lineTree.args=NULL,}
+#'  \code{lineNode.args=NULL,node.palette=NULL)}, where \code{variable} is the
+#'  same as \code{plotSTphen} and \code{node} is the vector of indices or numbers
+#'  (as inputted to \code{search.trend}, to be indicated as character) of nodes
+#'  to be plotted. The function allows up to nine nodes at the same time.
+#'  \code{plot.args} is a list of further arguments passed to the function
+#'  \code{plot}, including \code{pch.node}, a custom argument to set individual
+#'  \code{pch} at nodes (its length can be one or as long as the number of
+#'  nodes). \code{lineTree.args} is a list of further arguments passed to the
+#'  function \code{lines} used to plot the regression line for the entire tree
+#'  \code{lineNode.args} is a list of further arguments passed to the function
+#'  \code{lines} used to plot the regression line for individual nodes.
+#'  \code{node.palette} is the vector of colors specific to nodes points and
+#'  lines. Its length can be one or as long as the number of nodes.
+#'@return \strong{\code{$plotSTratesNode}} returns plots of absolute rates versus age
+#'  regression for individual clades. The arguments are the same as described
+#'  for \code{$plotSTphenNode}. In the case of multivariate \code{y}, the 2-norm
+#'  vector of multiple rates (see \code{\link{RRphylo}} for details) can be
+#'  plotted by setting \code{variable = "rate"} or \code{variable = } the number
+#'  of actual variables + 1.
+#'@author Silvia Castiglione, Carmela Serio
 #'@importFrom graphics points text title polygon pairs plot
 #'@export
 #'@seealso \href{../doc/search.trend.html}{\code{search.trend} vignette}
+#'@seealso \href{../doc/Plotting-tools.html}{\code{plotTrend} vignette}
 #'@references Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M.,
 #'  Profico, A., Girardi, G., & Raia, P. (2019) Simultaneous detection of
 #'  macroevolutionary patterns in phenotypic means and rate of change with and
@@ -45,15 +77,20 @@
 #'
 #' search.trend(RR=RRptero, y=log(massptero), nsim=100, node=143, clus=cc,cov=NULL)->ST
 #'
-#' plotTrends(ST)->plotST
+#' plotTrend(ST)->plotST
 #'
-#' plotST$plotPhen(1) # to plot phenotypic trend through time for entire tree
-#' plotST$plotPhen("y") # equivalent to the previuous line
+#' plotST$plotSTphen(1) # to plot phenotypic trend through time for entire tree
+#' plotST$plotSTphen("log(massptero)",plot.args=list(cex=1.2,col="blue")) # equivalent to above
 #'
-#' plotST$plotRates(1) # to plot rates trend through time for entire tree
+#' plotST$plotSTrates(1) # to plot rates trend through time for entire tree
 #'
-#' plotST$plotPhenNode("y") # to plot phenotypic trend through time for the clade
-#' plotST$plotRatesNode("y") # to plot rates trend through time for the clade
+#' # to plot phenotypic trend through time for the clade
+#' plotST$plotSTphenNode("log(massptero)",plot.args=list(xlab="Age",main="Phenotypic trend"),
+#'                     lineTree.args=list(lty=1,col="pink"),lineNode.args=list(lwd=3),
+#'                     node.palette=c("chartreuse"))
+#'
+#' # to plot rates trend through time for the clade
+#' plotST$plotSTratesNode("rate")
 #'
 #'    }
 
@@ -65,14 +102,14 @@ plotTrend<-function(ST){
   ST$ConfInts$rescaled_rate->CIresrate
   ST$phenotypic.regression->p.phen
   if(any(grepl(".multi",colnames(phen.plot)))){
-    resrate.plot[,-grep(".multi",colnames(phen.plot)),drop=FALSE]->resrate.plot
-    absrate.plot[,-grep(".multi",colnames(phen.plot)),drop=FALSE]->absrate.plot
     phen.plot[,-grep(".multi",colnames(phen.plot)),drop=FALSE]->phen.plot
-  }
-  ncol(phen.plot)-1->ny
+    ncol(phen.plot)-1->ny
+    ny+1->nyrate
+  } else ncol(phen.plot)-1->ny->nyrate
+
 
   apply(phen.plot[,1:ny,drop=FALSE],2,range01)->phen.plot[,1:ny]
-  abs(absrate.plot[,1:ny,drop=FALSE])->absrate.plot[,1:ny]
+  abs(absrate.plot[,1:nyrate,drop=FALSE])->absrate.plot[,1:nyrate]
   phen.plot$age<-max(phen.plot$age)-phen.plot$age
 
   if(!is.null(absrate.plot$group)){
@@ -86,181 +123,321 @@ plotTrend<-function(ST){
       max(absrate.plot[-as.numeric(names(outT$p)),1])->maxy else
         max(absrate.plot[,1])->maxy
 
-    cols <- suppressWarnings(RColorBrewer::brewer.pal(length(groups), "Set2"))
-
-    plotPhenNode<-function(variable){
+    plotSTphenNode<-function(variable,node=NULL,plot.args=NULL,lineTree.args=NULL,lineNode.args=NULL,node.palette=NULL){
       if(is.character(variable)){
-        if(any(is.na(match(variable,colnames(phen.plot))))) stop("variable do not match column names")
+        if(is.na(match(variable,colnames(phen.plot)))) stop("variable do not match column names")
         match(variable,colnames(phen.plot))->variable
-      }else if(any(variable>ny)) stop("variable are out of y bounds")
+      }else if(variable>ny) stop("variable is out of y bounds")
 
-      if(length(groups)%in%c(1,2)) {
-        mat<-matrix(c(1,length(groups)),ncol=1,nrow=2,byrow=TRUE)
-
-      }else{
-        plotind<-1:length(groups)
-        if(length(groups)%%2==0) c(2,length(groups)/2)->nn else c(2,(length(groups)+1)/2)->nn
-        if(is.integer(mean(nn))) rep(mean(nn),2)->nn
-        if((nn[1]*nn[2])>length(groups)) c(plotind,rep(0,(nn[1]*nn[2])-length(groups)))->plotind
-        matrix(plotind,nrow=nn[1],ncol=nn[2])->mat
-
+      if(!is.null(node)){
+        if(all(node>length(groups))) as.character(node)->node
+        if(is.character(node)){
+          if(any(is.na(match(node,gsub("g","",groups))))) stop("node not in tested clades")
+          groups[match(node,gsub("g","",groups))]->groups
+        }else{
+          if(any(node>length(groups))) stop("node are out of tested clades bounds")
+          groups[node]->groups
+        }
       }
-      layout(mat,heights =c(1,1))
+
+      if(!is.null(node.palette)){
+        if(length(node.palette)<length(groups)) rep(node.palette,length.out=length(groups))->node.palette
+      }else node.palette<-suppressWarnings(RColorBrewer::brewer.pal(length(groups), "Set2"))
+
+      if("pch.node"%in%names(plot.args)){
+        plot.args$pch.node->pch.node
+        if(length(pch.node)<length(groups)) rep(pch.node,length.out=length(groups))->pch.node
+        plot.args[which(names(plot.args)!="pch.node")]->plot.args
+      }else pch.node<-NULL
+
+      plotind<-1:length(groups)
+      cbind(rep(1:3,each=2)[-6],rep(1:3,each=2)[-1])->dfmat
+      cbind(dfmat,dfmat[,1]*dfmat[,2])->dfmat
+      cbind(dfmat,dfmat[,3]-length(groups))->dfmat
+      dfmat[which(dfmat[,4]>=0),,drop=FALSE][which.min(dfmat[which(dfmat[,4]>=0),3]),1:2]->nn
+      if((nn[1]*nn[2])>length(groups)) c(plotind,rep(0,(nn[1]*nn[2])-length(groups)))->plotind
+      matrix(plotind,nrow=nn[1],ncol=nn[2],byrow=TRUE)->mat
+
+      layout(mat)
 
       variable->i
       lapply(1:length(groups),function(j){
         phen.plot[which(phen.plot$group==groups[j]),c(i,ny+1)]->node.phen
         phen.plot[which(phen.plot$group!=groups[j]),c(i,ny+1)]->tree.phen
-
-        plot(phen.plot[, c(ny+1, i)],
-             xlab = "", ylab = "",cex.axis=0.8,mgp = c(1.2, 0.4, 0),
-             xlim=c(max(phen.plot[,ny+1]),min(phen.plot[,ny+1])),
-             main= paste("Phenotypic Trend for Variable",colnames(phen.plot)[i]))
-        title(xlab = "age", ylab =paste("Clade",gsub("g","",groups[j])),line = 1.5)
-
         predict(lm(tree.phen[,1]~tree.phen[,2]))->pred.tree
-
-        points(x=tree.phen$age, y=pred.tree,
-               lwd=3, col = "gray70",type="l")
-
-        points(node.phen[,2],node.phen[,1],
-               pch = 21, col = "black",bg = cols[j],cex=1.4)
         predict(lm(node.phen[,1]~node.phen[,2]))->pred.node
-        points(x=node.phen[,2], y=pred.node,
-               lwd=5, col = "black",type="l")
-        points(x=node.phen[,2], y=pred.node,
-               lwd=4, col = cols[j],type="l")
+
+        if(is.null(plot.args)) plot.args<-list()
+        if(is.null(lineTree.args)) lineTree.args<-list()
+        if(is.null(lineNode.args)) lineNode.args<-list()
+
+
+        if(!"xlab"%in%names(plot.args)) plot.args$xlab<-"age"
+        if("ylab"%in%names(plot.args)) ylabs<-plot.args$ylab else ylabs<-NULL
+        if(is.null(ylabs)) plot.args$ylab<-paste("Clade",gsub("g","",groups[j])) else{
+          if(length(ylabs)>1) plot.args$ylab<-ylabs[j]
+        }
+        if("main"%in%names(plot.args)) maint<-plot.args$main else maint<-NULL
+        if(is.null(maint)) plot.args$main<-paste("Phenotypic Trend for Variable",colnames(phen.plot)[i]) else{
+          if(length(maint)>1) plot.args$main<-maint[j]
+        }
+        if(!"xlim"%in%names(plot.args)) plot.args$xlim<-c(max(phen.plot[,ny+1]),min(phen.plot[,ny+1]))
+        if(!"ylim"%in%names(plot.args)) plot.args$ylim<-range(phen.plot[,i])
+        if(!"col"%in%names(plot.args)) "black"->plot.args$col
+        if(!"bg"%in%names(plot.args)) "white"->plot.args$bg
+        if(!"pch"%in%names(plot.args)) plot.args$pch<-21
+        rep(plot.args$pch,length(phen.plot[, i]))->plot.args$pch
+        if(!is.null(pch.node)) plot.args$pch[which(rownames(phen.plot)%in%rownames(node.phen))]<-pch.node[j]
+
+        if(unique(plot.args$pch[which(rownames(phen.plot)%in%rownames(node.phen))])%in%21:25){
+          rep(plot.args$bg,length(phen.plot[, i]))->plot.args$bg
+          plot.args$bg[which(rownames(phen.plot)%in%rownames(node.phen))]<-node.palette[j]
+        }else{
+          rep(plot.args$col,length(phen.plot[, i]))->plot.args$col
+          plot.args$col[which(rownames(phen.plot)%in%rownames(node.phen))]<-node.palette[j]
+        }
+
+        c(x=list(phen.plot[, ny+1]),y=list(phen.plot[, i]),plot.args)->points.args
+        c(x=list(NA),y=list(NA),plot.args)->plot.args
+
+        c(x=list(tree.phen$age[order(tree.phen$age)]),
+          y=list(pred.tree[order(tree.phen$age)]),type="l",lineTree.args)->lineTree.args
+        if(!"col"%in%names(lineTree.args)) lineTree.args$col<-"gray70"
+        if(!"lty"%in%names(lineTree.args)) lineTree.args$lty<-3
+        if(!"lwd"%in%names(lineTree.args)) lineTree.args$lwd<-3
+
+        c(x=list(node.phen$age[order(node.phen$age)]),
+          y=list(pred.node[order(node.phen$age)]),type="l",lineNode.args)->lineNode.args
+        if(!"lwd"%in%names(lineNode.args)) lineNode.args$lwd<-4
+        lineNode.args$col<-node.palette[j]
+
+        do.call(plot,plot.args)
+        do.call(points,points.args)
+        do.call(points,lineTree.args)
+        do.call(points,lineNode.args)
       })
     }
 
-    plotRatesNode<-function(variable){
+    plotSTratesNode<-function(variable,node=NULL,plot.args=NULL,lineTree.args=NULL,lineNode.args=NULL,node.palette=NULL){
       if(is.character(variable)){
-        if(any(is.na(match(variable,colnames(phen.plot))))) stop("variable do not match column names")
-        match(variable,colnames(phen.plot))->variable
-      }else if(any(variable>ny)) stop("variable are out of y bounds")
+        if(any(is.na(match(variable,colnames(absrate.plot))))) stop("variable do not match column names")
+        match(variable,colnames(absrate.plot))->variable
+      }else if(any(variable>nyrate)) stop("variable is out of y bounds")
 
-      if(length(groups)%in%c(1,2)) {
-        mat<-matrix(c(1,length(groups)),ncol=1,nrow=2,byrow=TRUE)
-
-      }else{
-        plotind<-1:length(groups)
-        if(length(groups)%%2==0) c(2,length(groups)/2)->nn else c(2,(length(groups)+1)/2)->nn
-        if(is.integer(mean(nn))) rep(mean(nn),2)->nn
-        if((nn[1]*nn[2])>length(groups)) c(plotind,rep(0,(nn[1]*nn[2])-length(groups)))->plotind
-        matrix(plotind,nrow=nn[1],ncol=nn[2])->mat
-
+      if(!is.null(node)){
+        if(all(node>length(groups))) as.character(node)->node
+        if(is.character(node)){
+          if(any(is.na(match(node,gsub("g","",groups))))) stop("node not in tested clades")
+          groups[match(node,gsub("g","",groups))]->groups
+        }else{
+          if(any(node>length(groups))) stop("node are out of tested clades bounds")
+          groups[node]->groups
+        }
       }
+
+      if(!is.null(node.palette)){
+        if(length(node.palette)<length(groups)) rep(node.palette,length.out=length(groups))->node.palette
+      }else node.palette<-suppressWarnings(RColorBrewer::brewer.pal(length(groups), "Set2"))
+
+      if("pch.node"%in%names(plot.args)){
+        plot.args$pch.node->pch.node
+        if(length(pch.node)<length(groups)) rep(pch.node,length.out=length(groups))->pch.node
+        plot.args[which(names(plot.args)!="pch.node")]->plot.args
+      }else pch.node<-NULL
+
+      plotind<-1:length(groups)
+      cbind(rep(1:3,each=2)[-6],rep(1:3,each=2)[-1])->dfmat
+      cbind(dfmat,dfmat[,1]*dfmat[,2])->dfmat
+      cbind(dfmat,dfmat[,3]-length(groups))->dfmat
+      dfmat[which(dfmat[,4]>=0),,drop=FALSE][which.min(dfmat[which(dfmat[,4]>=0),3]),1:2]->nn
+      if((nn[1]*nn[2])>length(groups)) c(plotind,rep(0,(nn[1]*nn[2])-length(groups)))->plotind
+      matrix(plotind,nrow=nn[1],ncol=nn[2],byrow=TRUE)->mat
+
       layout(mat)
 
       variable->i
       lapply(1:length(groups),function(j){
-        absrate.plot[which(absrate.plot$group==groups[j]),c(i,ny+1)]->node.rates
-        absrate.plot[which(absrate.plot$group!=groups[j]),c(i,ny+1)]->tree.rates
-
-        plot(absrate.plot[, c(ny+1, i)],
-             xlab = "", ylab = "",cex.axis=0.8,mgp = c(1.2, 0.4, 0),
-             ylim=c(min(absrate.plot[,1]),maxy),
-             xlim=c(max(absrate.plot[,ny+1]),min(absrate.plot[,ny+1])),
-             main= paste("Absolute Rates for Variable",colnames(phen.plot)[i]))
-        title(xlab = "age", ylab =paste("Clade",gsub("g","",groups[j])),line = 1.5)
-
+        absrate.plot[which(absrate.plot$group==groups[j]),c(i,nyrate+1)]->node.rates
+        absrate.plot[which(absrate.plot$group!=groups[j]),c(i,nyrate+1)]->tree.rates
         predict(lm(tree.rates[,1]~tree.rates[,2]))->pred.tree
-
-        points(x=tree.rates[,2], y=pred.tree,
-               lwd=3, col = "gray70",type="l")
-
-        points(node.rates[,2],node.rates[,1],
-               pch = 21, col = "black",bg = cols[j],cex=1.4)
-
         predict(lm(node.rates[,1]~node.rates[,2]))->pred.node
-        points(x=node.rates[,2], y=pred.node,
-               lwd=5, col = "black",type="l")
-        points(x=node.rates[,2], y=pred.node,
-               lwd=4, col = cols[j],type="l")
+
+
+        if(is.null(plot.args)) plot.args<-list()
+        if(is.null(lineTree.args)) lineTree.args<-list()
+        if(is.null(lineNode.args)) lineNode.args<-list()
+
+        if(!"xlab"%in%names(plot.args)) plot.args$xlab<-"age"
+        if("ylab"%in%names(plot.args)) ylabs<-plot.args$ylab else ylabs<-NULL
+        if(is.null(ylabs)) plot.args$ylab<-paste("Clade",gsub("g","",groups[j])) else{
+          if(length(ylabs)>1) plot.args$ylab<-ylabs[j]
+        }
+        if("main"%in%names(plot.args)) maint<-plot.args$main else maint<-NULL
+        if(is.null(maint)) plot.args$main<-paste("Absolute Rates for Variable",colnames(absrate.plot)[i]) else{
+          if(length(maint)>1) plot.args$main<-maint[j]
+        }
+
+        if(!"xlim"%in%names(plot.args)) plot.args$xlim<-c(max(absrate.plot[,nyrate+1]),min(absrate.plot[,nyrate+1]))
+        if(!"ylim"%in%names(plot.args)) plot.args$ylim<-c(min(absrate.plot[,1]),maxy)
+        if(!"col"%in%names(plot.args)) "black"->plot.args$col
+        if(!"bg"%in%names(plot.args)) "white"->plot.args$bg
+        if(!"pch"%in%names(plot.args)) plot.args$pch<-21
+        rep(plot.args$pch,length(absrate.plot[, i]))->plot.args$pch
+        if(!is.null(pch.node)) plot.args$pch[which(rownames(absrate.plot)%in%rownames(node.rates))]<-pch.node[j]
+
+        if(unique(plot.args$pch[which(rownames(absrate.plot)%in%rownames(node.rates))])%in%21:25){
+          rep(plot.args$bg,length(absrate.plot[, i]))->plot.args$bg
+          plot.args$bg[which(rownames(absrate.plot)%in%rownames(node.rates))]<-node.palette[j]
+        }else{
+          rep(plot.args$col,length(absrate.plot[, i]))->plot.args$col
+          plot.args$col[which(rownames(absrate.plot)%in%rownames(node.rates))]<-node.palette[j]
+        }
+
+        c(x=list(absrate.plot[, nyrate+1]),y=list(absrate.plot[, i]),plot.args)->points.args
+        c(x=list(NA),y=list(NA),plot.args)->plot.args
+
+        c(x=list(tree.rates$age[order(tree.rates$age)]),
+          y=list(pred.tree[order(tree.rates$age)]),type="l",lineTree.args)->lineTree.args
+        if(!"col"%in%names(lineTree.args)) lineTree.args$col<-"gray70"
+        if(!"lty"%in%names(lineTree.args)) lineTree.args$lty<-3
+        if(!"lwd"%in%names(lineTree.args)) lineTree.args$lwd<-3
+
+        c(x=list(node.rates$age[order(node.rates$age)]),
+          y=list(pred.node[order(node.rates$age)]),type="l",lineNode.args)->lineNode.args
+        if(!"lwd"%in%names(lineNode.args)) lineNode.args$lwd<-4
+        lineNode.args$col<-node.palette[j]
+
+        do.call(plot,plot.args)
+        do.call(points,points.args)
+        do.call(points,lineTree.args)
+        do.call(points,lineNode.args)
       })
     }
-  }else plotPhenNode<-NULL
 
 
-  plotPhen<-function(variable){
+  }else plotSTphenNode<-NULL
+
+
+  plotSTphen<-function(variable,plot.args=NULL,polygon.args=NULL,line.args=NULL){
     if(is.character(variable)){
       if(any(is.na(match(variable,colnames(phen.plot))))) stop("variable do not match column names")
       match(variable,colnames(phen.plot))->variable
-    }else if(any(variable>ny)) stop("variable are out of y bounds")
+    }else if(any(variable>ny)) stop("variable is out of y bounds")
 
     variable->i
-    ynam.phen<-paste("Rescaled",colnames(phen.plot)[i])
     lm(phen.plot[, i] ~ I(max(phen.plot$age)-phen.plot$age))->plot.reg
     quantile(CIphen[[i]],c(0.025,0.975))->ci.slope
     sapply(ci.slope,function(k) coef(plot.reg)[1]+k*c(max(phen.plot$age),0))->ci.points
 
-    plot(phen.plot[, c(ny+1, i)],
-         xlab = "", ylab = "",cex.axis=0.8,mgp = c(1.2, 0.4, 0),
-         xlim=c(max(phen.plot[,ny+1]),min(phen.plot[,ny+1])))
-    title(xlab = "age", ylab = ynam.phen,main="Phenotypic Trend Test" ,line = 1.5)
-    polygon(c(c(0,max(phen.plot$age),c(max(phen.plot$age),0))),
-            c(ci.points[,1], rev(ci.points[, 2])), col = rgb(0.5, 0.5,0.5, 0.4), border = NA)
-    points(phen.plot[which(suppressWarnings(is.na(as.numeric(rownames(phen.plot))))),ny+1],
-           phen.plot[which(suppressWarnings(is.na(as.numeric(rownames(phen.plot))))),i],
-           pch = 21, col = "black",
-           bg = "red")
-    abline(lm(phen.plot[, i] ~ phen.plot$age), lwd = 3,col = "blue")
+
+    if(is.null(plot.args)) plot.args<-list()
+    if(is.null(polygon.args)) polygon.args<-list()
+    if(is.null(line.args)) line.args<-list()
+
+    if(!"main"%in%names(plot.args)) plot.args$main<-"Phenotypic Trend Test"
+    if(!"xlab"%in%names(plot.args)) plot.args$xlab<-"age"
+    if(!"ylab"%in%names(plot.args)) plot.args$ylab<-paste("Rescaled",colnames(phen.plot)[i])
+    if(!"xlim"%in%names(plot.args)) plot.args$xlim<-c(max(phen.plot[,ny+1]),min(phen.plot[,ny+1]))
+    if(!"ylim"%in%names(plot.args)) plot.args$ylim<-range(phen.plot[,i])
+    if(!"pch"%in%names(plot.args)) plot.args$pch<-21
+    if(length(plot.args$pch)<length(phen.plot[, i])) rep(plot.args$pch,length.out=length(phen.plot[, i]))->plot.args$pch
+    if(!"col"%in%names(plot.args)) plot.args$col<-"black"
+    if(!"bg"%in%names(plot.args)) plot.args$bg<-"white"
+
+    pch.type<-plot.args$pch
+    pch.type[which(plot.args$pch>=20)]<-"bg"
+    pch.type[which(plot.args$pch<20)]<-"col"
+
+    if(length(plot.args$col)==1&any(suppressWarnings(is.na(as.numeric(rownames(phen.plot))))&pch.type=="col")){
+      rep(plot.args$col,length(phen.plot[, i]))->plot.args$col
+      plot.args$col[which(suppressWarnings(is.na(as.numeric(rownames(phen.plot))))&pch.type=="col")]<-"red"
+    }
+
+    if(length(plot.args$bg)==1&any(suppressWarnings(is.na(as.numeric(rownames(phen.plot))))&pch.type=="bg")){
+      rep(plot.args$bg,length(phen.plot[, i]))->plot.args$bg
+      plot.args$bg[which(suppressWarnings(is.na(as.numeric(rownames(phen.plot))))&pch.type=="bg")]<-"red"
+    }
+
+    c(x=list(phen.plot[, ny+1]),y=list(phen.plot[, i]),plot.args)->points.args
+    c(x=list(NA),y=list(NA),plot.args)->plot.args
+
+    c(x=list(c(c(0,max(phen.plot$age),c(max(phen.plot$age),0)))),
+      y=list(c(ci.points[,1], rev(ci.points[, 2]))),polygon.args)->polygon.args
+    if(!"col"%in%names(polygon.args)) polygon.args$col<-rgb(0.5, 0.5,0.5, 0.4)
+    if(!"border"%in%names(polygon.args)) polygon.args$border<-NA
+
+    c(reg=list(lm(phen.plot[, i] ~ phen.plot$age)),line.args)->line.args
+    if(!"col"%in%names(line.args)) line.args$col<-"blue"
+    if(!"lwd"%in%names(line.args)) line.args$lwd<-3
+
+    do.call(plot,plot.args)
+    do.call(polygon,polygon.args)
+    do.call(points,points.args)
+    do.call(abline,line.args)
   }
 
-  plotRates<-function(variable){
+  plotSTrates<-function(variable,plot.args=NULL,polygon.args=NULL,line.args=NULL){
     if(is.character(variable)){
-      if(any(is.na(match(variable,colnames(phen.plot))))) stop("variable do not match column names")
-      match(variable,colnames(phen.plot))->variable
-    }else if(any(variable>ny)) stop("variable are out of y bounds")
+      if(any(is.na(match(variable,colnames(absrate.plot))))) stop("variable do not match column names")
+      match(variable,colnames(absrate.plot))->variable
+    }else if(any(variable>nyrate)) stop("variable is out of y bounds")
 
     resrate.plot$age<-max(na.omit(resrate.plot$age))-resrate.plot$age
 
     variable->i
 
-    # if(is.null(x1)){
-    #   scalrat.age <- max(na.omit(scalrat.data[, ncol(scalrat.data)]))-scalrat.data[, ncol(scalrat.data)]
-    #   age <- max(rate.data[, ncol(rate.data)])-rate.data[, ncol(rate.data)]
-    #   names(scalrat.age)<-names(age)<-rownames(rate.data)
-    # }else{
-    #   scalrat.age <- max(scalrat.data[which(rownames(scalrat.data)!=(Ntip(t)+1)), ncol(scalrat.data)])-
-    #     scalrat.data[which(rownames(scalrat.data)!=(Ntip(t)+1)), ncol(scalrat.data)]
-    #   age <- max(rate.data[which(rownames(rate.data)!=(Ntip(t)+1)), ncol(rate.data)])-
-    #     rate.data[which(rownames(rate.data)!=(Ntip(t)+1)), ncol(rate.data)]
-    #   names(scalrat.age)<-names(age)<-rownames(rate.data)[which(rownames(rate.data)!=(Ntip(t)+1))]
-    # }
-    #
-    # if(is.null(x1)){
-    #   scalrat.bet <- scalrat.data[, i]
-    #   bet <- rate.data[, i]
-    #   names(bet)<-names(scalrat.bet)<-rownames(rate.data)
-    # }else{
-    #   bet<-rate.data[-which(rownames(rate.data)==(Ntip(t)+1)),i]
-    #   scalrat.bet<-scalrat.data[-which(rownames(scalrat.data)==(Ntip(t)+1)),i]
-    #   names(bet)<-names(scalrat.bet)<-rownames(rate.data)[-which(rownames(rate.data)==(Ntip(t)+i))]
-    # }
-
     lm(resrate.plot[,i] ~ I(max(resrate.plot$age)-resrate.plot$age))->plot.reg
     quantile(CIresrate[[i]],c(0.025,0.975))->ci.slope.scal
     sapply(ci.slope.scal,function(k) coef(plot.reg)[1]+k*c(max(resrate.plot$age),0))->ci.points.scal
 
-    ynam.scal<-paste("log rescaled rate for variable",colnames(phen.plot)[i])
+    if(is.null(plot.args)) plot.args<-list()
+    if(is.null(polygon.args)) polygon.args<-list()
+    if(is.null(line.args)) line.args<-list()
 
-    plot(resrate.plot[,i] ~ resrate.plot$age,
-         main="Rescaled Rate Trend Test",
-         xlab="",ylab="",
-         xlim=c(max(na.omit(resrate.plot$age)),min(na.omit(resrate.plot$age))),
-         cex.axis=0.8,mgp = c(1.2, 0.4, 0))
-    title(xlab = "age", ylab = ynam.scal,line = 1.5,)
-    polygon(c(c(0,max(resrate.plot$age),c(max(resrate.plot$age),0))),
-            c(ci.points.scal[, 1], rev(ci.points.scal[, 2])),
-            col = rgb(0.5, 0.5, 0.5,0.4), border = NA)
-    points(resrate.plot[which(suppressWarnings(is.na(as.numeric(rownames(resrate.plot))))),ny+1],
-           resrate.plot[which(suppressWarnings(is.na(as.numeric(rownames(resrate.plot))))),i],
-           pch = 21, col = "black",bg = "red")
-    abline(lm(resrate.plot[,i] ~ resrate.plot$age), lwd = 4, col = "blue")
+    if(!"main"%in%names(plot.args)) plot.args$main<-"Rescaled Rate Trend Test"
+    if(!"xlab"%in%names(plot.args)) plot.args$xlab<-"age"
+    if(!"ylab"%in%names(plot.args)) plot.args$ylab<-paste("log rescaled rate for variable",colnames(absrate.plot)[i])
+    if(!"ylim"%in%names(plot.args)) plot.args$ylim<-range(na.omit(resrate.plot[,i]))
+    if(!"xlim"%in%names(plot.args)) plot.args$xlim<-c(max(na.omit(resrate.plot$age)),min(na.omit(resrate.plot$age)))
+    if(!"pch"%in%names(plot.args)) plot.args$pch<-21
+    if(length(plot.args$pch)<length(phen.plot[, i])) rep(plot.args$pch,length.out=length(phen.plot[, i]))->plot.args$pch
+    if(!"col"%in%names(plot.args)) plot.args$col<-"black"
+    if(!"bg"%in%names(plot.args)) plot.args$bg<-"white"
+
+    pch.type<-plot.args$pch
+    pch.type[which(pch.type>=20)]<-"bg"
+    pch.type[which(pch.type<20)]<-"col"
+
+    if(length(plot.args$col)==1&any(suppressWarnings(is.na(as.numeric(rownames(phen.plot))))&pch.type=="col")){
+      rep(plot.args$col,length(phen.plot[, i]))->plot.args$col
+      plot.args$col[which(suppressWarnings(is.na(as.numeric(rownames(phen.plot))))&pch.type=="col")]<-"red"
+    }
+
+    if(length(plot.args$bg)==1&any(suppressWarnings(is.na(as.numeric(rownames(phen.plot))))&pch.type=="bg")){
+      rep(plot.args$bg,length(phen.plot[, i]))->plot.args$bg
+      plot.args$bg[which(suppressWarnings(is.na(as.numeric(rownames(phen.plot))))&pch.type=="bg")]<-"red"
+    }
+
+    c(x=list(resrate.plot$age),y=list(resrate.plot[,i]),plot.args)->points.args
+    c(x=list(NA),y=list(NA),plot.args)->plot.args
+
+    c(x=list(c(c(0,max(resrate.plot$age),c(max(resrate.plot$age),0)))),
+      y=list(c(ci.points.scal[,1], rev(ci.points.scal[, 2]))),polygon.args)->polygon.args
+    if(!"col"%in%names(polygon.args)) polygon.args$col<-rgb(0.5, 0.5,0.5, 0.4)
+    if(!"border"%in%names(polygon.args)) polygon.args$border<-NA
+
+    c(reg=list(lm(resrate.plot[,i] ~ resrate.plot$age)),line.args)->line.args
+    if(!"col"%in%names(line.args)) line.args$col<-"blue"
+    if(!"lwd"%in%names(line.args)) line.args$lwd<-3
+
+    do.call(plot,plot.args)
+    do.call(polygon,polygon.args)
+    do.call(points,points.args)
+    do.call(abline,line.args)
+
   }
 
-  list(plotPhen=plotPhen,plotRates=plotRates)->res
-  if(!is.null(plotPhenNode)) c(res,list(plotPhenNode=plotPhenNode,plotRatesNode=plotRatesNode))->res
+  list(plotSTphen=plotSTphen,plotSTrates=plotSTrates)->res
+  if(!is.null(plotSTphenNode)) c(res,list(plotSTphenNode=plotSTphenNode,plotSTratesNode=plotSTratesNode))->res
   return(res)
 }

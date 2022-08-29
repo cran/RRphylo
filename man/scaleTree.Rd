@@ -34,7 +34,6 @@ The function is a wrapper around the functions "scalePhylo",
 \donttest{
 library(ape)
 library(phytools)
-# library(geiger)
 
 data("DataFelids")
 DataFelids$treefel->tree

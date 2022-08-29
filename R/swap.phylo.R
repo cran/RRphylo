@@ -1,11 +1,9 @@
-#' @rdname RRphylo-deprecated
-#' @section \code{swap.phylo}:
-#' For \code{swap.phylo}, use \code{\link{overfitRR}}.
-#'
+#' @rdname RRphylo-defunct
 #' @export
 swap.phylo<-function(){
 
-  .Deprecated(msg="The function swap.phylo is deprecated. Check the function overfitRR to test sampling effects and phylogenetic uncertainty on RRphylo methods")
+  .Defunct(msg="The function swap.phylo has been removed from the package.
+           Check the function overfitRR to test sampling effects and phylogenetic uncertainty on RRphylo methods")
     # maxN <- function(x, N=2){
     #   len <- length(x)
     #   if(N>len){

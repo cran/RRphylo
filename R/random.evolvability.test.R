@@ -62,7 +62,6 @@ random.evolvability.test<-function(tree,data,node.estimation=c("RR","BM"),aces=N
   # require(ape)
   # require(phytools)
   # require(picante)
-  # require(geiger)
   # require(RRphylo)
   # require(ddpcr)
 

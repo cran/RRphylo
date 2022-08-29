@@ -4,7 +4,7 @@ author: "Silvia Castiglione, Carmela Serio, Pasquale Raia"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{RRphylo}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEngine{knitr::rmarkdown_notangle}
   %\VignetteEncoding{UTF-8}
   
 ---
@@ -360,7 +360,7 @@ RRphylo(tree,y,aces=acesy,x1=x1mat,aces.x1 = acex)->RRcat.multi
 
 Castiglione, S., Tesone, G., Piccolo, M., Melchionna, M., Mondanaro, A., Serio, C., Di Febbraro, M., & Raia, P.(2018). A new method for testing evolutionary rate variation and shifts in phenotypic evolution. Methods in Ecology and Evolution, 9, 974-983.
 
-Castiglione, S., Serio, C., Piccolo, M., Mondanaro, A., Melchionna, M., Di Febbraro, M., Sansalone, G., Wroe, S.,& Raia, P. (2020a). The influence of domestication, insularity and sociality on the tempo and mode of brain size evolution in mammals. Biological Journal of the Linnean Society, in press.
+Castiglione, S., Serio, C., Piccolo, M., Mondanaro, A., Melchionna, M., Di Febbraro, M., Sansalone, G., Wroe, S.,& Raia, P. (2020a). The influence of domestication, insularity and sociality on the tempo and mode of brain size evolution in mammals. Biological Journal of the Linnean Society, 132, 221-231.
         
 Castiglione, S., Serio, C., Mondanaro, A., Melchionna, M., Carotenuto, F., Di Febbraro, M., Profico, A., Tamagnini, D., & Raia, P. (2020b). Ancestral State Estimation with Phylogenetic Ridge Regression. Evolutionary Biology, 47, 220-232.
 

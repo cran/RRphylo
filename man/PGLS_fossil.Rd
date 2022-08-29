@@ -2,9 +2,10 @@
 % Please edit documentation in R/PGLS_fossil.R
 \name{PGLS_fossil}
 \alias{PGLS_fossil}
-\title{Phylogenetic Generalized Least Square with fossil phylogenies}
+\title{Phylogenetic Generalized Least Square with phylogenies including
+  fossils}
 \usage{
-PGLS_fossil(modform,data,tree,RR=NULL)
+PGLS_fossil(modform,data,tree=NULL,RR=NULL,...)
 }
 \arguments{
 \item{modform}{the formula for the regression model.}
@@ -12,34 +13,25 @@ PGLS_fossil(modform,data,tree,RR=NULL)
 \item{data}{a list of named vectors including response and predictor
 variables as named in \code{modform}.}
 
-\item{tree}{a phylogenetic tree. The tree needs not to be ultrametric and
-fully dichotomous.}
+\item{tree}{a phylogenetic tree to be indicated for any model other than
+\code{RRphylo} is used to rescale tree branches. The tree needs not to be
+ultrametric and fully dichotomous.}
 
 \item{RR}{the result of \code{RRphylo} performed on the response variable. If
-\code{NULL} the function fits Pagel's lambda in the regression for
-univariate data or uses the tree variance covariance matrix in the
-multivariate case. If \code{RR} is specified, tree branches are rescaled to
-the absolute branch-wise rate values calculated by \code{RRphylo} to
-transform the variance-covariance matrix.}
+\code{RR} is specified, tree branches are rescaled to the absolute
+branch-wise rate values calculated by \code{RRphylo} to transform the
+variance-covariance matrix.}
+
+\item{...}{further argument passed to the function
+\code{\link[phylolm]{phylolm}}.}
 }
 \value{
 Fitted pgls parameters and significance.
 }
 \description{
-The function performs pgls for non-ultrametric trees using
-  either Pagel's lambda transform, Brownian Motion or \code{\link{RRphylo}}
-  rates to change the correlation structure.
-}
-\details{
-With univariate data, the user may want to use either Pagel's lambda
-  or \code{RRphylo} rates to transform the correlation structure. In the
-  former case, the lambda transform is fitted to the data (Revell, 2010). In
-  the latter case, branch lengths are multiplied by absolute rates as
-  computed by \code{RRphylo} to accommodate rate variation across the tree. In
-  the multivariate case, the variance-covariance structure is either left
-  unaltered by keeping \code{RR = NULL} (Adams and Collyer, 2015) or changed
-  according to the norm-2 vector of rates computed for each phenotype by
-  specifying the \code{RR} object.
+The function performs pgls for non-ultrametric trees using a
+  variety of evolutionary models or \code{\link{RRphylo}} rates to change the
+  tree correlation structure.
 }
 \examples{
 \dontrun{
@@ -57,31 +49,19 @@ PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree)->pg
 RRphylo::RRphylo(tree,resp)->RR
 PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree,RR=RR)->pgls_RR
 
-# To derive log-likelihood and AIC for PGLS_fossil outputs performed on univariate data
-# without including the RR object, the function AIC can be applied
+# To derive log-likelihood and AIC for PGLS_fossil outputs the function AIC can be applied
 AIC(pgls_noRR)
+AIC(pgls_RR)
 
-# For univarite with RR and multivariate models, the function "model.comparison"
-# from the package RRPP must be used.
-RRPP::model.comparison(pgls_RR,type = "logLik")
 
 PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree)->pgls2_noRR
 cc<- 2/parallel::detectCores()
 RRphylo::RRphylo(tree,resp.multi,clus=cc)->RR
 PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree,RR=RR)->pgls2_RR
 
-RRPP::model.comparison(pgls2_noRR,pgls2_RR,type = "logLik")
-
+AIC(pgls2_noRR)
+AIC(pgls2_RR)
 }
-}
-\references{
-Revell, L.J. (2010). Phylogenetic signal and linear regression on
-  species data. \emph{Methods in Ecology and Evolution}, 1, 319-329.
-  https://doi.org/10.1111/j.2041-210X.2010.00044.x
-
-Adams, D.C., & Collyer, M. L. (2017). Multivariate phylogenetic
-  comparative methods: evaluations, comparisons, and recommendations.
-  \emph{Systematic Biology}, 67, 14-31. https://doi.org/10.1093/sysbio/syx055
 }
 \seealso{
 \href{../doc/RRphylo.html}{\code{RRphylo} vignette}

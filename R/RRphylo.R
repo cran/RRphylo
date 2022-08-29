@@ -145,7 +145,6 @@
 #'
 #' # Case 5. Categorical and multiple "RRphylo" with 2 additional predictors
 #' library(phytools)
-#' # library(geiger)
 #'
 #' set.seed(1458)
 #' rtree(50)->tree
@@ -178,7 +177,6 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
   # library(ape)
   # library(parallel)
   # library(doParallel)
-  # library(geiger)
 
   optL <- function(lambda) {
     y <- scale(y)

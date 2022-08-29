@@ -125,6 +125,8 @@
 #'@importFrom emmeans emmeans emtrends
 #'@export
 #'@seealso \href{../doc/search.trend.html}{\code{search.trend} vignette}
+#'@seealso \href{../doc/Plotting-tools.html}{\code{plotTrend} vignette}
+#'@seealso \code{\link{plotTrend}}
 #'@references Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M.,
 #'  Profico, A., Girardi, G., & Raia, P. (2019) Simultaneous detection of
 #'  macroevolutionary patterns in phenotypic means and rate of change with and
@@ -200,7 +202,6 @@ search.trend<-function (RR,y,
 {
   # require(ape)
   # require(phytools)
-  # require(geiger)
   # require(stats4)
   # require(foreach)
   # require(doParallel)
@@ -239,7 +240,7 @@ search.trend<-function (RR,y,
   L1 <- RR$node.path
   if (!is.null(ncol(y))&is.null(rownames(y))) stop("The matrix of phenotypes needs to be named")
   if (is.null(ncol(y))&is.null(names(y))) stop("The vector of phenotypes needs to be named")
-
+  ynam<-deparse(substitute(y))
   # if(is.null(nrow(y))) y <- treedata(t, y, sort = TRUE)[[2]][,1] else y <- treedata(t, y, sort = TRUE)[[2]]
   y <- treedataMatch(t, y)[[1]]
 
@@ -252,7 +253,8 @@ search.trend<-function (RR,y,
     y.multi[match(rownames(y),rownames(y.multi)),,drop=FALSE]->y.multi
     aceRR.multi <- (L1 %*% rates[1:Nnode(t), ])
     nodes <- cbind(aceRR,aceRR.multi)
-    colnames(nodes)<- c(paste("y", seq(1,ncol(y)),sep = ""),"y.multi")
+    if(is.null(colnames(y))) colnames(nodes)<- c(paste("y", seq(1,ncol(y)),sep = ""),"y.multi") else
+      colnames(nodes)<-c(colnames(y),"y.multi")
     P <- rbind(nodes, cbind(y,y.multi))
     if(isTRUE(x1.residuals)) apply(P,2,function(x) residuals(lm(x~x1)))->P
 
@@ -262,12 +264,14 @@ search.trend<-function (RR,y,
     rate.data <- data.frame(betas = betas[match(eds[, 1], rownames(betas)),],
                             rate = rates[match(eds[, 1], rownames(rates)),],
                             age = eds[, 2])
-    colnames(rate.data)[1:ncol(y)] <- paste("betas", seq(1,ncol(y)), sep = "")
+    if(is.null(colnames(y))) colnames(rate.data)[1:ncol(y)] <- paste("betas", seq(1,ncol(y)), sep = "") else
+      colnames(rate.data)[1:ncol(y)]<-colnames(y)
 
   }else{
     P <- rbind(aceRR, y)
     if(isTRUE(x1.residuals)) as.matrix(residuals(lm(P~x1)))->P
-    colnames(P)<-"y"
+    # colnames(P)<-"y"
+    colnames(P)<-ynam
 
     rate.data <- data.frame(rate = rates[match(eds[, 1], rownames(rates)),],
                             age = eds[, 2])
@@ -276,7 +280,7 @@ search.trend<-function (RR,y,
   }
 
   rate.data[,ncol(rate.data)]+L[1,1]->rate.data[,ncol(rate.data)]
-  phen.data <- data.frame(P[match(rownames(rate.data), rownames(P)),,drop=FALSE],age=rate.data$age)
+  phen.data <- data.frame(P[match(rownames(rate.data), rownames(P)),,drop=FALSE],age=rate.data$age,check.names = FALSE)
   rate.dataRES<-rate.data
   phen.dataRES <- phen.data
   {##### Rate Trend Real Multi #####
@@ -328,18 +332,20 @@ search.trend<-function (RR,y,
     colnames(scalrat.data)<-colnames(rate.data)[1:(ncol(rate.data)-1)]
     data.frame(scalrat.data,age=rate.data$age)->scalrat.data
 
-    if(is.null(colnames(y))|ncol(y)==1) rownames(rate.coef) <- names(rate.reg)<-colnames(rate.data)[1:(ncol(rate.data)-1)] else
-      rownames(rate.coef) <- names(rate.reg)<-c(colnames(y),"y.multiple")
+    rownames(rate.coef) <- names(rate.reg)<-colnames(rate.data)[1:(ncol(rate.data)-1)]
+
   }
 
   {##### Phenotypic Trend Real Multi #####
     phen.reg <-apply(phen.data[,1:(ncol(phen.data)- 1),drop=FALSE], 2, function(x) lm(range01(x) ~ phen.data[,ncol(phen.data)]))
     phen.coef <- lapply(phen.reg, function(x) coefficients(summary(x))[2,c(1,4)])
-    if(ncol(y)>1){
-      if(is.null(colnames(y)))
-        names(phen.coef) <- c(paste("y", seq(1:ncol(y)), sep = ""),"y.multiple") else
-          names(phen.coef) <- c(colnames(y),"y.multiple")
-    }else names(phen.coef)<-"y"
+    # if(ncol(y)>1){
+    #   if(is.null(colnames(y)))
+    #     names(phen.coef) <- c(paste("y", seq(1:ncol(y)), sep = ""),"y.multiple") else
+    #       names(phen.coef) <- c(colnames(y),"y.multiple")
+    # }else names(phen.coef)<-"y"
+
+    names(phen.coef) <- colnames(P)
 
     sapply(1:length(phen.coef),function(i){
       if(phen.coef[[i]][1]<0)
@@ -381,7 +387,8 @@ search.trend<-function (RR,y,
           pp
         })->rate.reg.y
 
-        names(rate.reg.y) <- colnames(rate.data)[1:(ncol(rate.data)-1)]
+        # names(rate.reg.y) <- colnames(rate.data)[1:(ncol(rate.data)-1)]
+        names(rate.reg.y) <- rownames(rate.coef)
       }
       rate.reg.y.sel[[j]] <- do.call(cbind,rate.reg.y)
       rate.reg.age.sel[[j]] <- rate.reg.age
@@ -597,7 +604,7 @@ search.trend<-function (RR,y,
     cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
   registerDoParallel(cl)
   res <- foreach(ii = 1:nsim, .packages = c("car","nlme", "ape",
-                                            "geiger", "phytools", "doParallel"
+                                            "phytools", "doParallel"
   )) %dopar% {
     # for(ii in 1:nsim){
     gc()
@@ -640,7 +647,7 @@ search.trend<-function (RR,y,
           m.betasT->betasT[,s]
         }
 
-        if(isTRUE(x1.residuals)) rootVD<-ares[,s] else rootVD<-mean(range(y[,s])) ### CONTROLLARE CON x1
+        if(isTRUE(x1.residuals)) rootVD<-mean(range(yres[,s])) else rootVD<-mean(range(y[,s])) ### CONTROLLARE CON x1
         m.betasD <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*%
                        t(L)) %*% (as.matrix(yD[,s]) - rootVD)
         aceRRD[,s] <- (L1 %*% m.betasD[1:Nnode(t), ]) + rootVD

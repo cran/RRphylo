@@ -33,7 +33,6 @@
 distNodes<-function(tree,node=NULL,clus=0.5){
   #require(ape)
   #require(phytools)
-  #require(geiger)
   #require(doParallel)
   #require(parallel)
   if(!identical(tree$edge[tree$edge[,2]<=Ntip(tree),2],seq(1,Ntip(tree)))){

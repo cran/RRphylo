@@ -36,7 +36,6 @@
 
 cutPhylo<-function(tree,age=NULL,node=NULL,keep.lineage=TRUE){
   # require(ape)
-  # require(geiger)
   # require(phytools)
   # require(picante)
 

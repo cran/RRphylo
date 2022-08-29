@@ -124,7 +124,6 @@ angle.matrix<-function(RR,node,Y=NULL,select.axes=c("no","yes"),type=c("phenotyp
 {
   #require(smatr)
   #require(rlist)
-  #require(geiger)
 
   if (!requireNamespace("smatr", quietly = TRUE)) {
     stop("Package \"smatr\" needed for this function to work. Please install it.",

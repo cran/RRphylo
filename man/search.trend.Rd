@@ -214,6 +214,10 @@ Castiglione, S., Serio, C., Mondanaro, A., Di Febbraro, M.,
 }
 \seealso{
 \href{../doc/search.trend.html}{\code{search.trend} vignette}
+
+\href{../doc/Plotting-tools.html}{\code{plotTrend} vignette}
+
+\code{\link{plotTrend}}
 }
 \author{
 Silvia Castiglione, Carmela Serio, Pasquale Raia, Alessandro

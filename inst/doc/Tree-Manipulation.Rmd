@@ -4,7 +4,7 @@ author: "Silvia Castiglione, Carmela Serio, Pasquale Raia"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Tree-Manipulation}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEngine{knitr::rmarkdown_notangle}
   %\VignetteEncoding{UTF-8}
 ---
 
@@ -83,7 +83,6 @@ tree.merger(backbone=tree.back,data=dato,plot=FALSE)
 tm<-function(backbone,data,source.tree=NULL,tip.ages = NULL, node.ages = NULL,min.branch=NULL,title){
   # require(ape)
   # require(phytools)
-  # require(geiger)
   # require(manipulate)
 
   backbone->tree
@@ -533,8 +532,7 @@ max(nodeHeights(tree))->H
 H-dist.nodes(tree)[(Ntip(tree)+1),(Ntip(tree)+1):(Ntip(tree)+Nnode(tree))]->age.nodes
 H-diag(vcv(tree))->age.tips
 
-# apply Pagel's lambda transformation to change node ages only 
-# geiger::rescale(tree,"lambda",0.8)->tree1
+# apply Pagel's lambda transformation to change node ages only
 rescaleRR(tree,lambda=0.8)->tree1
 
 # apply scaleTree to the transformed phylogeny, by setting
@@ -575,7 +573,6 @@ title("scaleTree rescaled",cex.main=1.2)
 
 # apply Pagel's kappa transformation to change both species and node ages, 
 # including the age at the tree root
-# geiger::rescale(tree,"kappa",0.5)->tree3
 rescaleRR(tree,kappa=0.5)->tree3
 
 # apply scaleTree to the transformed phylogeny, by setting
@@ -808,5 +805,5 @@ The function `fix.poly` randomly resolves polytomies either at specified nodes o
 ```
 
 ## References
-Castiglione, S., Serio, C., Piccolo, M., Mondanaro, A., Melchionna, M., Di Febbraro, M., Sansalone, G., Wroe, S.,& Raia, P. (2020). The influence of domestication, insularity and sociality on the tempo and mode of brain size evolution in mammals. Biological Journal of the Linnean Society, in press. 
+Castiglione, S., Serio, C., Piccolo, M., Mondanaro, A., Melchionna, M., Di Febbraro, M., Sansalone, G., Wroe, S.,& Raia, P. (2020). The influence of domestication, insularity and sociality on the tempo and mode of brain size evolution in mammals. Biological Journal of the Linnean Society, 132: 221-231. 
 

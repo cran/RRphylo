@@ -78,7 +78,6 @@
 StableTraitsR<-function(tree,y,path,output=NULL,aces=NULL,argST=NULL,argSTS=NULL){
   # require(ape)
   # require(phytools)
-  # require(geiger)
 
   if(!identical(tree$edge[tree$edge[,2]<=Ntip(tree),2],seq(1,Ntip(tree)))){
     tree$tip.label<-tree$tip.label[tree$edge[tree$edge[,2]<=Ntip(tree),2]]

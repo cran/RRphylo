@@ -24,7 +24,6 @@
 #' \donttest{
 #' library(ape)
 #' library(phytools)
-#' # library(geiger)
 #'
 #' data("DataFelids")
 #' DataFelids$treefel->tree
@@ -90,6 +89,9 @@ scaleTree<- function(tree, tip.ages=NULL, node.ages=NULL,min.branch=NULL)
     tree$edge[tree$edge[,2]<=Ntip(tree),2]<-seq(1,Ntip(tree))
   }
 
+  if(!is.null(ncol(tip.ages))) stop("tip.ages must be a vector")
+  if(!is.null(ncol(node.ages))) stop("node.ages must be a vector")
+
   if(is.null(tip.ages)) max(diag(vcv(tree)))-diag(vcv(tree))->tip.ages else{
 
     if(anyDuplicated(names(tip.ages))){
@@ -97,7 +99,7 @@ scaleTree<- function(tree, tip.ages=NULL, node.ages=NULL,min.branch=NULL)
         if(length(unique(tip.ages[which(names(tip.ages)%in%k)]))>1)  NA else k)->dup.tip
       if(any(is.na(dup.tip)))
         stop(paste("More than one age value supplied for",paste(names(dup.tip)[which(is.na(dup.tip))],collapse=", ")))
-      tip.ages[-which(duplicated(node.ages))]->tip.ages
+      tip.ages[which(!duplicated(names(tip.ages)))]->tip.ages
     }
 
     max(diag(vcv(tree)))-diag(vcv(tree))->ta
@@ -201,7 +203,7 @@ scaleTree<- function(tree, tip.ages=NULL, node.ages=NULL,min.branch=NULL)
 
         nam.vec[-which(nam.vec==nnfoc)]->nam.vec
       }else{
-        getDescendants(tree,nnfoc)[1:2]->des
+        getDescendants(tree,nnfoc)[1:sum(tree$edge[,1]==as.numeric(nnfoc))]->des
 
         max(age.vec[as.character(des)])->maxdes
         min(age.vec[as.character(des)])->mindes

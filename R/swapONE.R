@@ -133,7 +133,9 @@ swapONE<-function(tree,
     if(any(sapply(shifts,length)==0)) shifts[-which(sapply(shifts,length)==0)]->shifts
 
     if((Ntip(tree)*si)>length(shifts)) shifts->t.shifts else sample(shifts,Ntip(tree)*si)->t.shifts
-    sapply(t.shifts,function(x) if(length(x)==1) x<-x else sample(x,1))->t.change
+    lapply(t.shifts,function(x) if(length(x)==1) x<-x else sample(x,1))->t.change
+    sapply(1:length(t.change), function(k) paste(names(t.change)[k],"><",names(t.change[[k]]),sep=""))->names(t.change)
+    unlist(lapply(t.change,unname))->t.change
 
     diag(vcv(tree))->ages
     data.frame(tree$edge[,2],tree$edge.length)->DF
@@ -143,7 +145,8 @@ swapONE<-function(tree,
 
     check<-array()
     for(i in 1:length(t.change)){
-      if(DF[DF[,1]==strsplit(names(t.change),"\\.")[[i]][1],5]<DF[DF[,1]==strsplit(names(t.change),"\\.")[[i]][2],4] | DF[DF[,1]==strsplit(names(t.change),"\\.")[[i]][2],5]<DF[DF[,1]==strsplit(names(t.change),"\\.")[[i]][1],4]) check[i]<-"bar" else check[i]<-"good"
+      if(DF[DF[,1]==strsplit(names(t.change),"><")[[i]][1],5]<DF[DF[,1]==strsplit(names(t.change),"><")[[i]][2],4]|
+         DF[DF[,1]==strsplit(names(t.change),"><")[[i]][2],5]<DF[DF[,1]==strsplit(names(t.change),"><")[[i]][1],4]) check[i]<-"bar" else check[i]<-"good"
     }
     if(length(which(check=="bar"))>0) t.change[-which(check=="bar")]->t.change
 
@@ -155,13 +158,13 @@ swapONE<-function(tree,
         tree->tree1
         sw.tips<-c()
         for(i in 1:length(t.change)){
-          c(sw.tips,c(which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][1]),
-                      which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][2])))->sw.tips
+          c(sw.tips,c(which(tree1$tip.label==strsplit(names(t.change),split="><")[[i]][1]),
+                      which(tree1$tip.label==strsplit(names(t.change),split="><")[[i]][2])))->sw.tips
           tree1$tip.label[replace(seq(1:Ntip(tree1)),
-                                  c(which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][1]),
-                                    which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][2])),
-                                  c(which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][2]),
-                                    which(tree1$tip.label==strsplit(names(t.change),split="\\.")[[i]][1])))]->tree1$tip.label
+                                  c(which(tree1$tip.label==strsplit(names(t.change),split="><")[[i]][1]),
+                                    which(tree1$tip.label==strsplit(names(t.change),split="><")[[i]][2])),
+                                  c(which(tree1$tip.label==strsplit(names(t.change),split="><")[[i]][2]),
+                                    which(tree1$tip.label==strsplit(names(t.change),split="><")[[i]][1])))]->tree1$tip.label
         }
 
 
