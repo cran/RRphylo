@@ -142,9 +142,9 @@ data("DataOrnithodirans")
 DataOrnithodirans$treedino->treedino
 DataOrnithodirans$massdino->massdino
 DataOrnithodirans$statedino->statedino
+cc<- 2/parallel::detectCores()
 
-
-RRphylo(tree=treedino,y=massdino)->dinoRates
+RRphylo(tree=treedino,y=massdino,clus=cc)->dinoRates
 
 # Case 1. Without accounting for the effect of a covariate
 

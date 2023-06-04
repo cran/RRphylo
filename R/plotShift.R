@@ -1,12 +1,22 @@
 #'@title Graphical representation of search.shift results
-#'@description This function generates customized functions to produce plots out of
-#'  \code{\link{search.shift}} results.
+#'@description \code{plotShift} generates customized functions to produce plots
+#'  out of \code{\link{search.shift}} results.
+#'  \code{addShift} adds circles to highlight shifting clades onto the currently
+#'  plotted tree.
+#'@aliases plotShift
+#'@aliases addShift
 #'@usage plotShift(RR,SS,state=NULL)
+#'@usage addShift(SS,symbols.args=NULL)
 #'@param RR the object produced by \code{\link{RRphylo}} used to perform
 #'  \code{search.shift}.
 #'@param SS an object produced by \code{search.shift}.
 #'@param state if \code{search.shift} was performed under \code{status.type =
 #'  "sparse"}, this is the same \code{state} vector provided to the function.
+#'@param symbols.args as described for \code{$plotClades} below.
+#'@details Using \code{...$plotClades()} or plotting the tree and applying
+#'  \code{addShift()} returns the same plot. The latter function might be useful
+#'  in combination with \code{\link{plotRR}} to add the shifts information to the
+#'  branch-wise plot of evolutionary rate values.
 #'@return The function returns a function to generate a customizable plot of
 #'  \code{search.shift} results.
 #'@return If \code{search.shift} was performed under \code{status.type =
@@ -32,8 +42,9 @@
 #'  to the function \code{points}, and \code{legend.args} is a list of
 #'  additional arguments passed to the function \code{legend} (if \code{= NULL}
 #'  the legend is not plotted). If as many colors/pch values as the number of
-#'  different states are provided in \code{points.args}, each of them is assigned
-#'  to each states taken in the same order they are returned by \code{search.shift}.
+#'  different states are provided in \code{points.args}, each of them is
+#'  assigned to each states taken in the same order they are returned by
+#'  \code{search.shift}.
 #'@author Silvia Castiglione
 #'@importFrom graphics symbols
 #'@importFrom ape plot.phylo
@@ -51,12 +62,16 @@
 #' DataOrnithodirans$treedino->treedino
 #' DataOrnithodirans$massdino->massdino
 #' DataOrnithodirans$statedino->statedino
+#' cc<- 2/parallel::detectCores()
 #'
-#' RRphylo(tree=treedino,y=massdino)->dinoRates
+#' RRphylo(tree=treedino,y=massdino,clus=cc)->dinoRates
 #'
 #' search.shift(RR=dinoRates,status.type="clade")->SSauto
 #' plotShift(RR=dinoRates,SS=SSauto)->plotSS
 #' plotSS$plotClades()
+#'
+#' plot(dinoRates$tree)
+#' addShift(SS=SSauto)
 #'
 #' search.shift(RR=dinoRates,status.type="clade",node=c(696,746))->SSnode
 #' plotShift(RR=dinoRates,SS=SSnode)->plotSS
@@ -74,6 +89,9 @@
 
 plotShift<-function(RR,SS,state=NULL){
   RR$tree->tree
+  if(is.null(SS$single.clades)&is.null(SS$state.results)){
+    stop("No significant result available")
+  }
 
   if(!is.null(SS$single.clades)){
     SS$single.clades->single
@@ -81,6 +99,11 @@ plotShift<-function(RR,SS,state=NULL){
 
       if(Ntip(tree)>100){
         if(all(!c("show.tip.label","cex")%in%names(tree.args))) tree.args$show.tip.label<-FALSE
+      }
+
+      if(isTRUE(tree.args$no.margin)){
+        mars <- par("mar")
+        on.exit(par(mar = mars))
       }
 
       if(any(c("pos","neg")%in%names(symbols.args$fg))|is.null(symbols.args$fg)){
@@ -128,6 +151,11 @@ plotShift<-function(RR,SS,state=NULL){
       if(Ntip(tree)>100){
         if(all(!c("show.tip.label","cex")%in%names(tree.args))) tree.args$show.tip.label<-FALSE
         if(!"type"%in%names(tree.args)) tree.args$type<-"fan"
+      }
+
+      if(isTRUE(tree.args$no.margin)){
+        mars <- par("mar")
+        on.exit(par(mar = mars))
       }
 
       if(!"pch"%in%names(points.args)) {
@@ -203,4 +231,40 @@ plotShift<-function(RR,SS,state=NULL){
     return(list(plotStates=plotStates))
   }
 
+}
+
+#'@export
+addShift<-function(SS,symbols.args=NULL){
+  if(is.null(SS$single.clades)&is.null(SS$state.results)){
+    stop("No significant result available")
+  }
+
+  SS$single.clades->single
+  if(any(c("pos","neg")%in%names(symbols.args$fg))|is.null(symbols.args$fg)){
+    symbols.args$fg[which(names(symbols.args$fg)=="pos")]->colpos
+    symbols.args$fg[which(names(symbols.args$fg)=="neg")]->colneg
+    coltot<-NA
+    if(!is.null(colneg)) coltot[which(single[,2]<=0.025)]<-colneg else coltot[which(single[,2]<=0.025)]<-"red"
+    if(!is.null(colpos)) coltot[which(single[,2]>=0.975)]<-colpos else coltot[which(single[,2]>=0.975)]<-"royalblue"
+    symbols.args$fg<-coltot
+  }
+  if(!"inches"%in%names(symbols.args)) symbols.args$inches<-0.25
+
+  if(any(c("pos","neg")%in%names(symbols.args$bg))|is.null(symbols.args$bg)){
+    symbols.args$bg[which(names(symbols.args$bg)=="pos")]->colpos1
+    symbols.args$bg[which(names(symbols.args$bg)=="neg")]->colneg1
+    coltot1<-NA
+    if(!is.null(colneg1)) coltot1[which(single[,2]<=0.025)]<-colneg1 else coltot1[which(single[,2]<=0.025)]<-scales::alpha("red", 0.5)
+    if(!is.null(colpos1)) coltot1[which(single[,2]>=0.975)]<-colpos1 else coltot1[which(single[,2]>=0.975)]<-scales::alpha("royalblue", 0.5)
+    symbols.args$bg<-coltot1
+  }
+
+  if(!"bg"%in%names(symbols.args)) symbols.args$bg<-scales::alpha(symbols.args$fg, 0.5)
+  if(any(c("squares","rectangles","stars","thermometers","boxplots")%in%names(symbols.args)))
+    warning("The shape of the symbol cannot be modified",.immediate=TRUE)
+  symbols.args<-symbols.args[which(!names(symbols.args)%in%c("squares","rectangles","stars","thermometers","boxplots"))]
+
+  xx<-sapply(rownames(single),function(w) get("last_plot.phylo",envir =ape::.PlotPhyloEnv)[[22]][as.numeric(w)])
+  yy<-sapply(rownames(single),function(w) get("last_plot.phylo",envir =ape::.PlotPhyloEnv)[[23]][as.numeric(w)])
+  do.call(symbols,c(list(x=xx,y=yy,add=TRUE,circles=abs(single[,1])^0.5),symbols.args))
 }

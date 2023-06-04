@@ -128,9 +128,9 @@
 #' DataOrnithodirans$treedino->treedino
 #' DataOrnithodirans$massdino->massdino
 #' DataOrnithodirans$statedino->statedino
+#' cc<- 2/parallel::detectCores()
 #'
-#'
-#' RRphylo(tree=treedino,y=massdino)->dinoRates
+#' RRphylo(tree=treedino,y=massdino,clus=cc)->dinoRates
 #'
 #' # Case 1. Without accounting for the effect of a covariate
 #'
@@ -184,7 +184,7 @@ search.shift<-function(RR,
   if(is.null(f)) f<-round(Ntip(tree)/10)
 
   if(!is.null(cov)){
-    RRphylo(tree,cov)->RRcova
+    RRphylo(tree,cov,clus=0)->RRcova
     abs(c(RRcova$aces,cov))->Y
     c(rownames(RRcova$aces),names(cov))->names(Y)
 
@@ -366,6 +366,7 @@ search.shift<-function(RR,
       }
     }
   } else {
+    state<-as.matrix(state)
     state <- treedataMatch(tree, state)[[1]][,1]
     frame <- data.frame(status = as.factor(state),
                         rate = rates[match(names(state),rownames(rates))])

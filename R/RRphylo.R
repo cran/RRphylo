@@ -8,8 +8,8 @@
 #'   for all the branches of the tree. For multivariate data, rates are given as
 #'   both one vector per variable, and as a multivariate vector obtained by
 #'   computing the Euclidean Norm of individual rate vectors.
-#' @usage
-#' RRphylo(tree,y,cov=NULL,rootV=NULL,aces=NULL,x1=NULL,aces.x1=NULL,clus=0.5)
+#' @usage RRphylo(tree,y,cov=NULL,rootV=NULL,aces=NULL,x1=NULL,
+#'   aces.x1=NULL,clus=0.5,verbose=FALSE)
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric or
 #'   fully dichotomous.
 #' @param y either a single vector variable or a multivariate dataset. In any
@@ -42,9 +42,11 @@
 #' @param aces.x1 a named vector/matrix of ancestral character values at nodes
 #'   for \code{x1}. It must be indicated if both \code{aces} and \code{x1} are
 #'   specified. Names/rownames correspond to the nodes in the tree.
-#' @param clus the proportion of clusters to be used in parallel computing (only
-#'   if \code{y} is multivariate). To run the single-threaded version of
-#'   \code{RRphylo} set \code{clus} = 0.
+#' @param clus the proportion of clusters to be used in parallel computing.
+#'   Default is 0.5. To run the single-threaded version of \code{RRphylo} set
+#'   \code{clus} = 0.
+#' @param verbose logical indicating whether a "RRlog.txt" printing progresses
+#'   should be stored into the working directory.
 #' @export
 #' @importFrom ape multi2di Ntip is.binary Nnode dist.nodes drop.tip subtrees
 #'   nodelabels
@@ -100,8 +102,7 @@
 #' @references  Castiglione, S., Serio, C., Mondanaro, A., Melchionna, M.,
 #'   Carotenuto, F., Di Febbraro, M., Profico, A., Tamagnini, D., & Raia, P.
 #'   (2020). Ancestral State Estimation with Phylogenetic Ridge Regression.
-#'   \emph{Evolutionary Biology}, 47: 220-232.
-#'   doi:10.1007/s11692-020-09505-x
+#'   \emph{Evolutionary Biology}, 47: 220-232. doi:10.1007/s11692-020-09505-x
 #' @references Castiglione, S., Serio, C., Piccolo, M., Mondanaro, A.,
 #'   Melchionna, M., Di Febbraro, M., Sansalone, G., Wroe, S., & Raia, P.
 #'   (2020). The influence of domestication, insularity and sociality on the
@@ -112,16 +113,17 @@
 #' data("DataOrnithodirans")
 #' DataOrnithodirans$treedino->treedino
 #' DataOrnithodirans$massdino->massdino
+#' cc<- 2/parallel::detectCores()
 #'
 #' # Case 1. "RRphylo" without accounting for the effect of a covariate
-#' RRphylo(tree=treedino,y=massdino)->RRcova
+#' RRphylo(tree=treedino,y=massdino,clus=cc)->RRcova
 #'
 #' # Case 2. "RRphylo" accounting for the effect of a covariate
 #' # "RRphylo" on the covariate in order to retrieve ancestral state values
 #' c(RRcova$aces,massdino)->cov.values
 #' c(rownames(RRcova$aces),names(massdino))->names(cov.values)
 #'
-#' RRphylo(tree=treedino,y=massdino,cov=cov.values)->RR
+#' RRphylo(tree=treedino,y=massdino,cov=cov.values,clus=cc)->RR
 #'
 #' # Case 3. "RRphylo" specifying the ancestral states
 #' data("DataCetaceans")
@@ -130,18 +132,18 @@
 #' DataCetaceans$brainmasscet->brainmasscet
 #' DataCetaceans$aceMyst->aceMyst
 #'
-#' RRphylo(tree=treecet,y=masscet,aces=aceMyst)->RR
+#' RRphylo(tree=treecet,y=masscet,aces=aceMyst,clus=cc)->RR
 #'
 #' # Case 4. Multiple "RRphylo"
 #' library(ape)
 #' drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
 #' masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
 #'
-#' RRphylo(tree=treecet.multi, y=masscet.multi)->RRmass.multi
+#' RRphylo(tree=treecet.multi, y=masscet.multi,clus=cc)->RRmass.multi
 #' RRmass.multi$aces[,1]->acemass.multi
 #' c(acemass.multi,masscet.multi)->x1.mass
 #'
-#' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RR
+#' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass,clus=cc)->RR
 #'
 #' # Case 5. Categorical and multiple "RRphylo" with 2 additional predictors
 #' library(phytools)
@@ -154,9 +156,9 @@
 #' y2[sample(1:50,20)]<-2
 #' names(y2)<-names(y)
 #'
-#' c(RRphylo(tree,y1)$aces[,1],y1)->x1
+#' c(RRphylo(tree,y1,clus=cc)$aces[,1],y1)->x1
 #'
-#' RRphylo(tree,y2)->RRcat ### this is the RRphylo on the categorical variable
+#' RRphylo(tree,y2,clus=cc)->RRcat ### this is the RRphylo on the categorical variable
 #' c(RRcat$aces[,1],y2)->x2
 #'
 #' cbind(c(jitter(mean(y1[tips(tree,83)])),1),
@@ -164,19 +166,31 @@
 #' c(jitter(mean(y[tips(tree,83)])),jitter(mean(y[tips(tree,53)])))->acesy
 #' names(acesy)<-rownames(acex)<-c(83,53)
 #'
-#' RRphylo(tree,y,aces=acesy,x1=cbind(x1,x2),aces.x1 = acex)
+#' RRphylo(tree,y,aces=acesy,x1=cbind(x1,x2),aces.x1 = acex,clus=cc)
 #'
 #'     }
 
 
 
 
-RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x1=NULL, clus = 0.5){
+RRphylo<-function (tree, y,
+                   cov = NULL,
+                   rootV = NULL,
+                   aces = NULL,
+                   x1=NULL,
+                   aces.x1=NULL,
+                   clus = 0.5,
+                   verbose=FALSE){
   # library(phytools)
   # library(stats4)
   # library(ape)
   # library(parallel)
   # library(doParallel)
+
+  if(verbose){
+    sink("RRlog.txt")
+    on.exit(sink())
+  }
 
   optL <- function(lambda) {
     y <- scale(y)
@@ -244,7 +258,6 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
     }
   }
 
-
   if (!is.null(aces)) { #### phenotypes at internal nodes ####
     #L <- makeL(t)
     aceV <- aces <- as.matrix(aces)
@@ -255,7 +268,6 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
       sapply(1:nrow(aceV),function(i) getMRCA(t, tips(tree, as.numeric(rownames(aceV)[i]))))->rownames(aceV)
       if(!is.null(aces.x1)) sapply(1:nrow(aces.x1),function(i) getMRCA(t, tips(tree, as.numeric(rownames(aces.x1)[i]))))->rownames(aces.x1)
     }
-
 
     t$edge.length[match(rownames(aceV),t$edge[,2])]->aces.bran
     if(any(aces.bran==0)) stop(paste("Error at nodes ",paste(rownames(aceV)[which(aces.bran==0)],collapse = ", "),
@@ -336,7 +348,9 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
   internals<-unique(c(t$edge[,1],t$edge[, 2][which(t$edge[,2]>Ntip(t))]))
   edged <- data.frame(t$edge, t$edge.length)
 
-  if(ncol(y)==1) clus<-0
+  if(verbose) cat(paste("Initial settings DONE\n"))
+
+  # if(ncol(y)==1) clus<-0
   if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else
     cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
   registerDoParallel(cl)
@@ -356,14 +370,17 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
     y.real <- y
     rv.real <- rootV
     res <- foreach(i = 1:ncol(y.real), .packages = c("stats4", "ape")) %dopar% {
-      #for(i in 1:k){
+      if(verbose) sink("RRlog.txt", append=TRUE)
+      if(verbose) cat(paste("Variable",i,"- optimization started\n"))
+      # for(i in 1:k){
       rootV <- rv.real[i]
       y <- y.real[, i]
       if(!is.null(x1)){ #### multiple Ridge Regression ####
         h <- mle(optLmultiple, start = list(lambda = 1), method = "L-BFGS-B",
                  upper = 10, lower = 0.001)
-        h@coef->lambda
+        if(verbose) cat(paste("Variable",i,"- optimization DONE\n"))
 
+        h@coef->lambda
         cbind(L,sweep(y1,2,ace1[1,]))->LX
         apply(ace1,2,mean)->mean.ace1
         cbind(L1,sweep(ace1,2,mean.ace1))->LX1
@@ -376,24 +393,27 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
         betas[(length(betas)+1-ncol(y1)):length(betas),]->x1.rate
         betas[1:(length(betas)-ncol(y1)),,drop=FALSE]->betas
         colnames(betas)<-NULL
+        if(verbose) cat("Variable",i,"- rates and aces estimation DONE\n")
+
         list(aceRR, betas, y.hat, lambda,x1.rate)
 
       }else{
         h <- mle(optL, start = list(lambda = 1), method = "L-BFGS-B",
                  upper = 10, lower = 0.001)
+        if(verbose) cat("Variable",i,"- optimization DONE\n")
+
         lambda <- h@coef
         betas <- (solve(t(L) %*% L + lambda * diag(ncol(L))) %*%
                     t(L)) %*% (as.matrix(y) - rootV)
         aceRR <- (L1 %*% betas[1:Nnode(t), ]) + rootV
         y.hat <- (L %*% betas) + rootV
+        if(verbose) cat(paste("Variable",i,"- rates and aces estimation DONE\n"))
         list(aceRR, betas, y.hat, lambda)
       }
     }
     y <- y.real
   }
   stopCluster(cl)
-
-
 
   aceRR <- do.call(cbind, lapply(res, "[[", 1))
   betas <- do.call(cbind, lapply(res, "[[", 2))
@@ -472,4 +492,3 @@ RRphylo<-function (tree, y, cov = NULL, rootV = NULL, aces = NULL,x1=NULL,aces.x
 
   return(res)
 }
-

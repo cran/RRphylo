@@ -2,9 +2,12 @@
 % Please edit documentation in R/plotShift.R
 \name{plotShift}
 \alias{plotShift}
+\alias{addShift}
 \title{Graphical representation of search.shift results}
 \usage{
 plotShift(RR,SS,state=NULL)
+
+addShift(SS,symbols.args=NULL)
 }
 \arguments{
 \item{RR}{the object produced by \code{\link{RRphylo}} used to perform
@@ -14,6 +17,8 @@ plotShift(RR,SS,state=NULL)
 
 \item{state}{if \code{search.shift} was performed under \code{status.type =
 "sparse"}, this is the same \code{state} vector provided to the function.}
+
+\item{symbols.args}{as described for \code{$plotClades} below.}
 }
 \value{
 The function returns a function to generate a customizable plot of
@@ -43,12 +48,21 @@ If \code{search.shift} was performed under \code{status.type =
  to the function \code{points}, and \code{legend.args} is a list of
  additional arguments passed to the function \code{legend} (if \code{= NULL}
  the legend is not plotted). If as many colors/pch values as the number of
- different states are provided in \code{points.args}, each of them is assigned
- to each states taken in the same order they are returned by \code{search.shift}.
+ different states are provided in \code{points.args}, each of them is
+ assigned to each states taken in the same order they are returned by
+ \code{search.shift}.
 }
 \description{
-This function generates customized functions to produce plots out of
- \code{\link{search.shift}} results.
+\code{plotShift} generates customized functions to produce plots
+ out of \code{\link{search.shift}} results.
+ \code{addShift} adds circles to highlight shifting clades onto the currently
+ plotted tree.
+}
+\details{
+Using \code{...$plotClades()} or plotting the tree and applying
+ \code{addShift()} returns the same plot. The latter function might be useful
+ in combination with \code{\link{plotRR}} to add the shifts information to the
+ branch-wise plot of evolutionary rate values.
 }
 \examples{
 \dontrun{
@@ -56,12 +70,16 @@ data("DataOrnithodirans")
 DataOrnithodirans$treedino->treedino
 DataOrnithodirans$massdino->massdino
 DataOrnithodirans$statedino->statedino
+cc<- 2/parallel::detectCores()
 
-RRphylo(tree=treedino,y=massdino)->dinoRates
+RRphylo(tree=treedino,y=massdino,clus=cc)->dinoRates
 
 search.shift(RR=dinoRates,status.type="clade")->SSauto
 plotShift(RR=dinoRates,SS=SSauto)->plotSS
 plotSS$plotClades()
+
+plot(dinoRates$tree)
+addShift(SS=SSauto)
 
 search.shift(RR=dinoRates,status.type="clade",node=c(696,746))->SSnode
 plotShift(RR=dinoRates,SS=SSnode)->plotSS

@@ -5,15 +5,17 @@
 \title{Phylogenetic Generalized Least Square with phylogenies including
   fossils}
 \usage{
-PGLS_fossil(modform,data,tree=NULL,RR=NULL,...)
+PGLS_fossil(modform,data=NULL,tree=NULL,RR=NULL,GItransform=FALSE,
+  intercept=FALSE,model="BM",method=NULL,permutation="none",...)
 }
 \arguments{
 \item{modform}{the formula for the regression model.}
 
-\item{data}{a list of named vectors including response and predictor
-variables as named in \code{modform}.}
+\item{data}{a data.frame or list including response and predictor variables
+as named in \code{modform}. If not found in \code{data}, the variables are
+taken from current environment.}
 
-\item{tree}{a phylogenetic tree to be indicated for any model other than
+\item{tree}{a phylogenetic tree to be indicated for any model except if
 \code{RRphylo} is used to rescale tree branches. The tree needs not to be
 ultrametric and fully dichotomous.}
 
@@ -22,21 +24,51 @@ ultrametric and fully dichotomous.}
 branch-wise rate values calculated by \code{RRphylo} to transform the
 variance-covariance matrix.}
 
-\item{...}{further argument passed to the function
-\code{\link[phylolm]{phylolm}}.}
+\item{GItransform}{logical indicating whether the PGLS approach as in Garland
+and Ives (2000) must be applied.}
+
+\item{intercept}{under \code{GItransform = TRUE}, indicates whether the
+intercept should be included in the model.}
+
+\item{model}{an evolutionary model as indicated in
+\code{\link[phylolm]{phylolm}} (for univariate response variable) or
+\code{\link[mvMORPH]{mvgls}} (for multivariate response variable).}
+
+\item{method}{optional argument to be passed to \code{phylolm} (for
+univariate response variable) or \code{mvgls} (for multivariate response
+variable). See individual functions for further details.}
+
+\item{permutation}{passed to \code{\link[mvMORPH]{manova.gls}}}
+
+\item{...}{further argument passed to \code{phylolm}, \code{mvgls},
+\code{manova.gls}, or \code{\link[stats]{lm}}.}
 }
 \value{
-Fitted pgls parameters and significance.
+Fitted pgls parameters and significance. The class of the output
+  object depends on input data (see details).
 }
 \description{
 The function performs pgls for non-ultrametric trees using a
   variety of evolutionary models or \code{\link{RRphylo}} rates to change the
   tree correlation structure.
 }
+\details{
+The function is meant to work with both univariate or multivariate
+  data, both low- or high-dimensional. In the first case, \code{PGLS_fossil}
+  uses \code{phylolm}, returning an object of class "phylolm". In the latter,
+  regression coefficients are estimated by \code{mvgls}, and statistical
+  significance is obtained by means of permutations within \code{manova.gls}.
+  In this case, \code{PGLS_fossil} returns a list including the output of
+  both analyses. In all cases, for both univariate or multivariate data, if
+  \code{GItransform = TRUE} the functions returns a standard \code{lm}
+  output. In the latter case, the output additionally includes the result of
+  manova applied on the multivariate linear model.
+}
 \examples{
 \dontrun{
 library(ape)
 library(phytools)
+cc<- 2/parallel::detectCores()
 
 rtree(100)->tree
 fastBM(tree)->resp
@@ -44,30 +76,56 @@ fastBM(tree,nsim=3)->resp.multi
 fastBM(tree)->pred1
 fastBM(tree)->pred2
 
-PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree)->pgls_noRR
+PGLS_fossil(modform=resp~pred1+pred2,tree=tree)->pgls_noRR
+PGLS_fossil(modform=resp~pred1+pred2,tree=tree,GItransform=TRUE)->GIpgls_noRR
 
-RRphylo::RRphylo(tree,resp)->RR
-PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree,RR=RR)->pgls_RR
+RRphylo(tree,resp,clus=cc)->RR
+PGLS_fossil(modform=resp~pred1+pred2,tree=tree,RR=RR)->pgls_RR
+PGLS_fossil(modform=resp~pred1+pred2,tree=tree,RR=RR,GItransform=TRUE)->GIpgls_RR
 
-# To derive log-likelihood and AIC for PGLS_fossil outputs the function AIC can be applied
+# To derive log-likelihood and AIC for outputs of PGLS_fossil applied on univariate
+# response variables the function AIC can be applied
 AIC(pgls_noRR)
 AIC(pgls_RR)
+AIC(GIpgls_noRR)
+AIC(GIpgls_RR)
 
 
-PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree)->pgls2_noRR
-cc<- 2/parallel::detectCores()
-RRphylo::RRphylo(tree,resp.multi,clus=cc)->RR
-PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree,RR=RR)->pgls2_RR
+PGLS_fossil(modform=resp.multi~pred1+pred2,tree=tree)->pgls2_noRR
+PGLS_fossil(modform=resp.multi~pred1+pred2,tree=tree,GItransform=TRUE)->GIpgls2_noRR
 
-AIC(pgls2_noRR)
-AIC(pgls2_RR)
+# To evaluate statistical significance of multivariate models, the '$manova'
+# object must be inspected
+pgls2_noRR$manova
+summary(GIpgls2_noRR$manova)
+
+RRphylo(tree,resp.multi,clus=cc)->RR
+PGLS_fossil(modform=resp.multi~pred1+pred2,tree=tree,RR=RR)->pgls2_RR
+PGLS_fossil(modform=resp.multi~pred1+pred2,tree=tree,RR=RR,GItransform=TRUE)->GIpgls2_RR
+
+# To evaluate statistical significance of multivariate models, the '$manova'
+# object must be inspected
+pgls2_noRR$manova
+summary(GIpgls2_noRR$manova)
+pgls2_RR$manova
+summary(GIpgls2_RR$manova)
+
+logLik(pgls2_noRR$pgls)
+logLik(pgls2_RR$pgls)
 }
+}
+\references{
+Garland, Jr, T., & Ives, A. R. (2000). Using the past to predict
+  the present: confidence intervals for regression equations in phylogenetic
+  comparative methods. \emph{The American Naturalist}, 155: 346-364.
+  doi:10.1086/303327
 }
 \seealso{
-\href{../doc/RRphylo.html}{\code{RRphylo} vignette}
+\href{../doc/RRphylo.html}{\code{RRphylo} vignette};
+  \code{\link[mvMORPH]{mvgls}} ; \code{\link[mvMORPH]{manova.gls}}
+  ;\code{\link[phylolm]{phylolm}}
 }
 \author{
-Pasquale Raia, Silvia Castiglione, Carmela Serio, Alessandro
-  Mondanaro, Marina Melchionna, Mirko Di Febbraro, Antonio Profico, Francesco
-  Carotenuto
+Silvia Castiglione, Pasquale Raia, Carmela Serio, Gabriele Sansalone,
+  Giorgia Girardi
 }

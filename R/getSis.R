@@ -24,6 +24,10 @@
 
 getSis<-function(tree,n,printZoom=TRUE){
   #require(ape)
+  if(isTRUE(printZoom)){
+    mars <- par("mar")
+    on.exit(par(mar = mars))
+  }
 
   if (is.character(n)) if(n%in%tree$tip.label) n <- which(tree$tip.label == n) else n<-as.numeric(n)
   tree$edge[which(tree$edge[,2]==n),1]->mom

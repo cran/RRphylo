@@ -7,7 +7,7 @@
 #' @usage
 #' overfitRR(RR,y,phylo.list=NULL,s=0.25,swap.args=NULL,trend.args=NULL,shift.args=NULL,
 #' conv.args=NULL, pgls.args=NULL,aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,
-#' rootV=NULL,nsim=100,clus=.5)
+#' rootV=NULL,nsim=100,clus=0.5)
 #' @param RR an object produced by \code{\link{RRphylo}}.
 #' @param y a named vector of phenotypes.
 #' @param phylo.list a list (or multiPhylo) of alternative phylogenies to be
@@ -168,8 +168,8 @@
 #' massptero[match(treeptero$tip.label,names(massptero))]->massptero
 #'
 #'
-#' RRphylo(tree=treedino,y=massdino)->dinoRates
-#' RRphylo(tree=treeptero,y=log(massptero))->RRptero
+#' RRphylo(tree=treedino,y=massdino,clus=cc)->dinoRates
+#' RRphylo(tree=treeptero,y=log(massptero),clus=cc)->RRptero
 #'
 #' # Case 1 search.shift under both "clade" and "sparse" condition
 #' search.shift(RR=dinoRates, status.type= "clade")->SSnode
@@ -202,11 +202,11 @@
 #'                                                treecet$tip.label)])->treecet.multi
 #' masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
 #'
-#' RRphylo(tree=treecet.multi,y=masscet.multi)->RRmass.multi
+#' RRphylo(tree=treecet.multi,y=masscet.multi,clus=cc)->RRmass.multi
 #' RRmass.multi$aces[,1]->acemass.multi
 #' c(acemass.multi,masscet.multi)->x1.mass
 #'
-#' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
+#' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass,clus=cc)->RRmulti
 #' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc)->STcet
 #' overfitRR(RR=RRmulti,y=brainmasscet,trend.args = list(),
 #'           x1=x1.mass,nsim=10,clus=cc)->orr.st3
@@ -239,7 +239,7 @@
 #'
 #' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree)->pgls_noRR
 #'
-#' RRphylo::RRphylo(tree,resp)->RR
+#' RRphylo(tree,resp,clus=cc)->RR
 #' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree,RR=RR)->pgls_RR
 #'
 #' overfitRR(RR=RR,y=resp,
@@ -247,8 +247,8 @@
 #'                          tree=TRUE,RR=TRUE),nsim=10,clus=cc)->orr.pgls1
 #'
 #' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree)->pgls2_noRR
-#' cc<- 2/parallel::detectCores()
-#' RRphylo::RRphylo(tree,resp.multi,clus=cc)->RR
+#'
+#' RRphylo(tree,resp.multi,clus=cc)->RR
 #' PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree,RR=RR)->pgls2_RR
 #'
 #' overfitRR(RR=RR,y=resp.multi,
@@ -293,6 +293,7 @@ overfitRR<-function(RR,y,
     nsim<-length(phylo.list)
   }else{
     if(!is.null(swap.args)){
+      if(any(is.null(names(swap.args)))) stop("All swap.args must be named")
       if(is.null(swap.args$si)) si<-0.1 else si<-swap.args$si
       if(is.null(swap.args$si2)) si2<-0.1 else si2<-swap.args$si2
       if(is.null(swap.args$node)) swap.node<-NULL else swap.node<-swap.args$node
@@ -304,6 +305,7 @@ overfitRR<-function(RR,y,
   }
 
   if(!is.null(trend.args)){
+    if(length(trend.args)>0&any(is.null(names(trend.args)))) stop("All trend.args must be named")
     trend<-TRUE
     if(!is.null(trend.args$node)) trend.node<-trend.args$node else trend.node<-NULL
     if(!is.null(trend.args$x1.residuals)) trend.x1.residuals<-trend.args$x1.residuals else trend.x1.residuals<-FALSE
@@ -314,6 +316,7 @@ overfitRR<-function(RR,y,
   }
 
   if(!is.null(shift.args)){
+    if(any(is.null(names(shift.args)))) stop("All shift.args must be named")
     if(!is.null(shift.args$node)) shift.node<-shift.args$node else shift.node<-NULL
     if(!is.null(shift.args$state)) {
       shift.state<-shift.args$state
@@ -325,6 +328,7 @@ overfitRR<-function(RR,y,
   }
 
   if(!is.null(conv.args)){
+    if(any(is.null(names(conv.args)))) stop("All conv.args must be named")
     if(!is.null(conv.args$node)) conv.node<-conv.args$node else conv.node<-NULL
     if(!is.null(conv.args$state)){
       conv.state<-conv.args$state
@@ -338,6 +342,7 @@ overfitRR<-function(RR,y,
   }
 
   if(!is.null(pgls.args)){
+    if(any(is.null(names(pgls.args)))) stop("All pgls.args must be named")
     modform<-pgls.args$modform
     pgls.data<-pgls.args$data
     if(pgls.args$tree) pgls.tree<-pgls.args$tree else pgls.tree<-NULL
@@ -424,7 +429,7 @@ overfitRR<-function(RR,y,
 
     if(!is.null(cov)){
       treedataMatch(treecut,cov)$y->covcut
-      c(RRphylo(treecut,covcut)$aces[,1],covcut)->covcut
+      c(RRphylo(treecut,covcut,clus=clus)$aces[,1],covcut)->covcut
       # cov[match(c(rownames(y.acecut),rownames(ycut)),names(cov))]->covcut
       # names(covcut)[1:Nnode(treecut)]<-seq((Ntip(treecut)+1),(Ntip(treecut)+Nnode(treecut)))
     }else covcut<-NULL
@@ -432,7 +437,7 @@ overfitRR<-function(RR,y,
     if(!is.null(x1)) {
       as.matrix(x1)->x1
       treedataMatch(treecut,x1)$y->x1cut
-      rbind(RRphylo(treecut,x1cut)$aces,x1cut)->x1cut
+      rbind(RRphylo(treecut,x1cut,clus=clus)$aces,x1cut)->x1cut
       # x1[match(c(rownames(y.acecut),rownames(ycut)),rownames(x1)),,drop=FALSE]->x1cut
       # rownames(x1cut)[1:Nnode(treecut)]<-seq((Ntip(treecut)+1),(Ntip(treecut)+Nnode(treecut)))
     }else x1cut<-NULL

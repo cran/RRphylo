@@ -21,6 +21,11 @@
 #' }
 
 treeCompare<-function(tree,tree1,plot=TRUE){
+  if(isTRUE(plot)){
+    mars <- par("mar")
+    on.exit(par(mar = mars))
+  }
+
   if(!identical(tree1$edge[tree1$edge[,2]<=Ntip(tree1),2],seq(1,Ntip(tree1)))){
     tree1$tip.label<-tree1$tip.label[tree1$edge[tree1$edge[,2]<=Ntip(tree1),2]]
     tree1$edge[tree1$edge[,2]<=Ntip(tree1),2]<-seq(1,Ntip(tree1))

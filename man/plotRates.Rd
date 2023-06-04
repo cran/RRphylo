@@ -64,6 +64,8 @@ pR$plotLollipop(lollipop.args=list(col="chartreuse",bg="chartreuse"),
 \seealso{
 \href{../doc/RRphylo.html}{\code{RRphylo} vignette}
 
+\href{../doc/Plotting-tools.html}{\code{plotRates} vignette}
+
 \href{../doc/RRphylo.html}{\code{RRphylo} vignette}
 
 \href{../doc/Plotting-tools.html}{\code{plotRates} vignette}

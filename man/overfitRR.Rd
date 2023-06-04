@@ -6,7 +6,7 @@
 \usage{
 overfitRR(RR,y,phylo.list=NULL,s=0.25,swap.args=NULL,trend.args=NULL,shift.args=NULL,
 conv.args=NULL, pgls.args=NULL,aces=NULL,x1=NULL,aces.x1=NULL,cov=NULL,
-rootV=NULL,nsim=100,clus=.5)
+rootV=NULL,nsim=100,clus=0.5)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}.}
@@ -183,8 +183,8 @@ massdino[match(treeptero$tip.label,names(massdino))]->massptero
 massptero[match(treeptero$tip.label,names(massptero))]->massptero
 
 
-RRphylo(tree=treedino,y=massdino)->dinoRates
-RRphylo(tree=treeptero,y=log(massptero))->RRptero
+RRphylo(tree=treedino,y=massdino,clus=cc)->dinoRates
+RRphylo(tree=treeptero,y=log(massptero),clus=cc)->RRptero
 
 # Case 1 search.shift under both "clade" and "sparse" condition
 search.shift(RR=dinoRates, status.type= "clade")->SSnode
@@ -217,11 +217,11 @@ ape::drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),
                                                treecet$tip.label)])->treecet.multi
 masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
 
-RRphylo(tree=treecet.multi,y=masscet.multi)->RRmass.multi
+RRphylo(tree=treecet.multi,y=masscet.multi,clus=cc)->RRmass.multi
 RRmass.multi$aces[,1]->acemass.multi
 c(acemass.multi,masscet.multi)->x1.mass
 
-RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
+RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass,clus=cc)->RRmulti
 search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc)->STcet
 overfitRR(RR=RRmulti,y=brainmasscet,trend.args = list(),
           x1=x1.mass,nsim=10,clus=cc)->orr.st3
@@ -254,7 +254,7 @@ fastBM(tree)->pred2
 
 PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree)->pgls_noRR
 
-RRphylo::RRphylo(tree,resp)->RR
+RRphylo(tree,resp,clus=cc)->RR
 PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp,x2=pred1,x1=pred2),tree=tree,RR=RR)->pgls_RR
 
 overfitRR(RR=RR,y=resp,
@@ -262,8 +262,8 @@ overfitRR(RR=RR,y=resp,
                          tree=TRUE,RR=TRUE),nsim=10,clus=cc)->orr.pgls1
 
 PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree)->pgls2_noRR
-cc<- 2/parallel::detectCores()
-RRphylo::RRphylo(tree,resp.multi,clus=cc)->RR
+
+RRphylo(tree,resp.multi,clus=cc)->RR
 PGLS_fossil(modform=y1~x1+x2,data=list(y1=resp.multi,x2=pred1,x1=pred2),tree=tree,RR=RR)->pgls2_RR
 
 overfitRR(RR=RR,y=resp.multi,

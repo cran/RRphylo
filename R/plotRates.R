@@ -1,17 +1,17 @@
 #'@title Plot RRphylo rates at a specified node
-#'@usage plotRates(RR,node,export.tiff=NULL,filename=NULL)
 #'@description This function generates customized functions to produce
 #'  histograms and lollipop charts of the \code{\link{RRphylo}} rates computed
 #'  for a given clade as compared to the rates computed for the rest of the
 #'  tree.
+#'@usage plotRates(RR,node,export.tiff=NULL,filename=NULL)
 #'@param RR an object produced by \code{\link{RRphylo}}.
 #'@param node the node subtending the clade of interest.
 #'@param export.tiff is deprecated.
 #'@param filename is deprecated.
 #'@export
 #'@seealso \href{../doc/RRphylo.html}{\code{RRphylo} vignette}
+#'@seealso \href{../doc/Plotting-tools.html}{\code{plotRates} vignette}
 #'@author Silvia Castiglione, Pasquale Raia
-#'@importFrom grDevices tiff
 #'@importFrom graphics abline legend hist par
 #'@return The function returns a list of functions:
 #'@return \strong{$plotHist} returns the histograms of rates (in ln absolute

@@ -158,7 +158,7 @@ massdino[match(treeptero$tip.label,names(massdino))]->massptero
 massptero[match(treeptero$tip.label,names(massptero))]->massptero
 
 # Case 1. "RRphylo" whitout accounting for the effect of a covariate
-RRphylo(tree=treeptero,y=log(massptero))->RRptero
+RRphylo(tree=treeptero,y=log(massptero),clus=cc)->RRptero
 
 # Case 1.1. "search.trend" whitout indicating nodes to be tested for trends
 search.trend(RR=RRptero, y=log(massptero), nsim=100, clus=cc,cov=NULL,node=NULL)
@@ -169,10 +169,10 @@ search.trend(RR=RRptero, y=log(massptero), nsim=100, node=143, clus=cc,cov=NULL)
 
 # Case 2. "RRphylo" accounting for the effect of a covariate
 # "RRphylo" on the covariate in order to retrieve ancestral state values
-RRphylo(tree=treeptero,y=log(massptero))->RRptero
+RRphylo(tree=treeptero,y=log(massptero),clus=cc)->RRptero
 c(RRptero$aces,log(massptero))->cov.values
 names(cov.values)<-c(rownames(RRptero$aces),names(massptero))
-RRphylo(tree=treeptero,y=log(massptero),cov=cov.values)->RRpteroCov
+RRphylo(tree=treeptero,y=log(massptero),cov=cov.values,clus=cc)->RRpteroCov
 
 # Case 2.1. "search.trend" whitout indicating nodes to be tested for trends
 search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, clus=cc,cov=cov.values)
@@ -191,11 +191,11 @@ DataCetaceans$aceMyst->aceMyst
 drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
 masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
 
-RRphylo(tree=treecet.multi,y=masscet.multi)->RRmass.multi
+RRphylo(tree=treecet.multi,y=masscet.multi,clus=cc)->RRmass.multi
 RRmass.multi$aces[,1]->acemass.multi
 c(acemass.multi,masscet.multi)->x1.mass
 
-RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
+RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass,clus=cc)->RRmulti
 
 # incorporating the effect of body size at inspecting trends in absolute evolutionary rates
 search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc)

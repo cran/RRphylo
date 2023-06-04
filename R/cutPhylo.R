@@ -49,7 +49,7 @@ cutPhylo<-function(tree,age=NULL,node=NULL,keep.lineage=TRUE){
     tree$edge[tree$edge[,2]<=Ntip(tree),2]<-seq(1,Ntip(tree))
   }
 
-  distNodes(tree,(Ntip(tree)+1))->dN
+  distNodes(tree,(Ntip(tree)+1),clus=0)->dN
   if(is.null(node)) max(nodeHeights(tree))-age->cutT else dN[match(node,rownames(dN)),2]->cutT
   dN[,2]->dd
   dd[which(dd>=cutT)]->ddcut

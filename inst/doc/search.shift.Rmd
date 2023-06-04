@@ -44,10 +44,11 @@ Under the `clade` condition, the function searches for shifts in absolute evolut
 
 Under the automatic mode, the function selects all the clades ranging from one tenth to one half of the tree size (yet, the smallest clade size can be specified by setting the argument `f`), and computes the difference between the mean absolute rates of each of them and the rest of the tree. The significance of such difference is assessed by comparing it to a random distribution of differences, obtained by shuffling rate values across tree branches (the object `$all.clades` within the function output). A rate shift is identified if the rate difference is significantly higher (p \> 0.975) or lower (p \< 0.025) than expected by chance.
 
-```{r,echo=12,message=FALSE,fig.dim=c(4,4),out.width="62%",dpi=220}
+```{r,echo=13,message=FALSE,fig.dim=c(4,4),out.width="62%",dpi=220}
 require(ape)
 require(phytools)
 require(scales)
+cc<- 2/parallel::detectCores()
 
 set.seed(22)
 rtree(100)->Tree
@@ -55,7 +56,7 @@ fastBM(Tree)->y
 
 y[tips(Tree,161)]*5->y[tips(Tree,161)]
 
-RRphylo(Tree,y)->RR
+RRphylo(Tree,y,clus = cc)->RR
 search.shift(RR,status.type = "clade")->SSauto
 
 plot(Tree,no.margin = TRUE, show.tip.label = FALSE)
@@ -125,7 +126,7 @@ categ->two_categ
 categ[sample(1:100,20)]<-"c"
 y[which(categ=="c")]*1.5->y[which(categ=="c")]
 categ->three_categ
-RRphylo(Tree,y)->RR
+RRphylo(Tree,y,clus=cc)->RR
 
 search.shift(RR,status.type = "sparse",state=two_categ)->SSstate2
 search.shift(RR,status.type = "sparse",state=three_categ)->SSstate3

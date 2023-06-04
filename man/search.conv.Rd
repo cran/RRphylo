@@ -6,7 +6,7 @@
 \usage{
 search.conv(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
   min.dim=NULL,max.dim=NULL,min.dist=NULL,declust=FALSE,nsim=1000,rsim=1000,
-  clus=.5,filename=NULL)
+  clus=0.5,filename=NULL)
 }
 \arguments{
 \item{RR}{an object produced by \code{\link{RRphylo}}. This is not indicated

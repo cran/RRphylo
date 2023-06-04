@@ -4,13 +4,16 @@
 \alias{namesCompare}
 \title{Checking species names for misspelling and synonyms}
 \usage{
-namesCompare(vec1, vec2)
+namesCompare(vec1,vec2,proportion=0.15)
 }
 \arguments{
 \item{vec1, vec2}{a vector of species names. Genus names only are also
 allowed. Generic name and specific epithet must be separated by '_'. Note
 that \code{vec2} is used as the reference. Incomplete or suspicious names
 are better placed in \code{vec1} (see example below).}
+
+\item{proportion}{the maximum proportion of different characters between any
+\code{vec1-vec2} names pair to consider it a possible misspelling.}
 }
 \value{
 The function returns a \code{list} including:
@@ -23,7 +26,8 @@ The function returns a \code{list} including:
   epithets after genus name), this object lists species in \code{vec2}
   possibly corresponding to each of the subspecies.
 
-\strong{$epithet} lists species with matching epithets as possible synonyms.
+\strong{$epithet} lists species with matching epithets as possible
+  synonyms.
 
 \strong{$misspelling} lists possible misspelled names. For each
   proposed mismatched names pair the proportion of characters in the

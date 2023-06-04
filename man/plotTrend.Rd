@@ -79,7 +79,7 @@ extract.clade(treedino,746)->treeptero
 massdino[match(treeptero$tip.label,names(massdino))]->massptero
 massptero[match(treeptero$tip.label,names(massptero))]->massptero
 
-RRphylo(tree=treeptero,y=log(massptero))->RRptero
+RRphylo(tree=treeptero,y=log(massptero),clus=cc)->RRptero
 
 search.trend(RR=RRptero, y=log(massptero), nsim=100, node=143, clus=cc,cov=NULL)->ST
 

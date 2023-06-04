@@ -146,7 +146,7 @@
 #' massptero[match(treeptero$tip.label,names(massptero))]->massptero
 #'
 #' # Case 1. "RRphylo" whitout accounting for the effect of a covariate
-#' RRphylo(tree=treeptero,y=log(massptero))->RRptero
+#' RRphylo(tree=treeptero,y=log(massptero),clus=cc)->RRptero
 #'
 #' # Case 1.1. "search.trend" whitout indicating nodes to be tested for trends
 #' search.trend(RR=RRptero, y=log(massptero), nsim=100, clus=cc,cov=NULL,node=NULL)
@@ -157,10 +157,10 @@
 #'
 #' # Case 2. "RRphylo" accounting for the effect of a covariate
 #' # "RRphylo" on the covariate in order to retrieve ancestral state values
-#' RRphylo(tree=treeptero,y=log(massptero))->RRptero
+#' RRphylo(tree=treeptero,y=log(massptero),clus=cc)->RRptero
 #' c(RRptero$aces,log(massptero))->cov.values
 #' names(cov.values)<-c(rownames(RRptero$aces),names(massptero))
-#' RRphylo(tree=treeptero,y=log(massptero),cov=cov.values)->RRpteroCov
+#' RRphylo(tree=treeptero,y=log(massptero),cov=cov.values,clus=cc)->RRpteroCov
 #'
 #' # Case 2.1. "search.trend" whitout indicating nodes to be tested for trends
 #' search.trend(RR=RRpteroCov, y=log(massptero), nsim=100, clus=cc,cov=cov.values)
@@ -179,11 +179,11 @@
 #' drop.tip(treecet,treecet$tip.label[-match(names(brainmasscet),treecet$tip.label)])->treecet.multi
 #' masscet[match(treecet.multi$tip.label,names(masscet))]->masscet.multi
 #'
-#' RRphylo(tree=treecet.multi,y=masscet.multi)->RRmass.multi
+#' RRphylo(tree=treecet.multi,y=masscet.multi,clus=cc)->RRmass.multi
 #' RRmass.multi$aces[,1]->acemass.multi
 #' c(acemass.multi,masscet.multi)->x1.mass
 #'
-#' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass)->RRmulti
+#' RRphylo(tree=treecet.multi,y=brainmasscet,x1=x1.mass,clus=cc)->RRmulti
 #'
 #' # incorporating the effect of body size at inspecting trends in absolute evolutionary rates
 #' search.trend(RR=RRmulti, y=brainmasscet,x1=x1.mass,clus=cc)
@@ -416,7 +416,7 @@ search.trend<-function (RR,y,
     #colnames(rate.dataN)[4:ncol(rate.dataN)]<-paste("group",seq(1,(ncol(rate.dataN)-3)),sep="")
     phen.dataN <- cbind(phen.dataN, rate.dataN[,(ncol(rate.data)+1):ncol(rate.dataN)])
     if (length(which(rate.dataN$group == "others")) < 3)
-      rate.dataN <- rate.dataN[-which(rate.dataN$group == "others"),]
+      rate.dataN <- rate.dataN[which(rate.dataN$group != "others"),]
 
 
     rate.dataRES<-rate.dataN[,1:(ncol(rate.dataN)-length(node))]
@@ -425,7 +425,7 @@ search.trend<-function (RR,y,
       rate.NvsN<-rate.NvsO<-list()
       phen.NvsN<-phen.NvsN.emm<-phen.NvsO<-list()
 
-      groupPP <- phen.dataN[-which(phen.dataN$group == "others"), ]$group
+      groupPP <- phen.dataN[which(phen.dataN$group != "others"), ]$group
       agePP <- phen.dataN$age
 
       for (i in 1:(ncol(rate.data)-1)) {
@@ -485,7 +485,7 @@ search.trend<-function (RR,y,
         data.frame(mtrends.dat,mtrends.slope[match(mtrends.dat[,1],mtrends.slope[,1]),2],
                    mtrends.slope[match(mtrends.dat[,2],mtrends.slope[,1]),2],mtrends[,6])->rate.NvsN[[i]]
         colnames(rate.NvsN[[i]])<-c("group_1","group_2","emm.difference","p.emm","slope.group1","slope.group2","p.slope")
-        rate.NvsN[[i]][-which(rate.NvsN[[i]]$group_2=="others"),]->rate.NvsN[[i]]
+        rate.NvsN[[i]][which(rate.NvsN[[i]]$group_2!="others"),]->rate.NvsN[[i]]
 
         dat <- data.frame(yPP=unname(yPP), age=phen.dataN$age, group=phen.dataN$group)
         if((!is.null(x1))&isFALSE(x1.residuals)){ #### emmeans multiple ####
@@ -498,7 +498,7 @@ search.trend<-function (RR,y,
         data.frame(do.call(rbind,strsplit(as.character(PPpairs[,1])," - ")),
                    PPpairs[,-c(1,3,4,5)])->Pcomp.emm
         colnames(Pcomp.emm)<-c("group_1","group_2","mean","p.mean")
-        Pcomp.emm[-which(Pcomp.emm$group_2=="others"),]->Pcomp.emm
+        Pcomp.emm[which(Pcomp.emm$group_2!="others"),]->Pcomp.emm
         Pcomp.emm->phen.NvsN.emm[[i]]
 
         if(length(node)>1){

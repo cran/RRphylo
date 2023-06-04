@@ -89,8 +89,16 @@ scaleTree<- function(tree, tip.ages=NULL, node.ages=NULL,min.branch=NULL)
     tree$edge[tree$edge[,2]<=Ntip(tree),2]<-seq(1,Ntip(tree))
   }
 
-  if(!is.null(ncol(tip.ages))) stop("tip.ages must be a vector")
-  if(!is.null(ncol(node.ages))) stop("node.ages must be a vector")
+  if(!is.null(ncol(tip.ages))){
+    tag<-tip.ages[,1]
+    names(tag)<-rownames(tip.ages)
+    tip.ages<-tag
+  } # stop("tip.ages must be a vector")
+  if(!is.null(ncol(node.ages))) {
+    nag<-node.ages[,1]
+    names(nag)<-rownames(node.ages)
+    node.ages<-nag
+  } #stop("node.ages must be a vector")
 
   if(is.null(tip.ages)) max(diag(vcv(tree)))-diag(vcv(tree))->tip.ages else{
 
@@ -157,7 +165,11 @@ scaleTree<- function(tree, tip.ages=NULL, node.ages=NULL,min.branch=NULL)
 
   data.frame(ed=tree$edge,bl=NA)->eds.dat
 
+  lenpb<-length(nam.vec)
+  pb = txtProgressBar(min = 0, max = lenpb, style = 3)
+  on.exit(close(pb))
   while(length(nam.vec)>0){
+    setTxtProgressBar(pb,lenpb-length(nam.vec))
     nam.vec[1]->nnfoc
     age.vec[as.character(nnfoc)]->agefoc
     age.vec[as.character(getMommy(tree,nnfoc))]->moms
@@ -241,6 +253,7 @@ scaleTree<- function(tree, tip.ages=NULL, node.ages=NULL,min.branch=NULL)
       eds.dat$bl[match(nnfoc,eds.dat$ed.2)]<-moms[1]-agefoc
       nam.vec[-which(nam.vec==nnfoc)]->nam.vec
     }
+
   }
 
   t2<- tree

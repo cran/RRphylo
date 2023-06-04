@@ -91,8 +91,8 @@
 #'   DataApes$PCstage->PCstage
 #'   DataApes$Tstage->Tstage
 #'   DataApes$CentroidSize->CS
-#'
 #'   cc<- 2/parallel::detectCores()
+#'
 #'   RRphylo(tree=Tstage,y=PCstage,clus=cc)->RR
 #' # Case 1. without accounting for the effect of a covariate
 #'
@@ -164,7 +164,7 @@ angle.matrix<-function(RR,node,Y=NULL,select.axes=c("no","yes"),type=c("phenotyp
 
     }else{
 
-      RRphylo(tree,cova)->RRcova
+      RRphylo(tree,cova,clus=clus)->RRcova
       c(RRcova$aces,cova)->covari
       names(covari)<-c(rownames(RRcova$aces),names(cova))
       RRphylo(tree,y.sel,cov=covari,clus=clus)->rr.sel
@@ -186,7 +186,7 @@ angle.matrix<-function(RR,node,Y=NULL,select.axes=c("no","yes"),type=c("phenotyp
 
     }else{
 
-      RRphylo(tree,cova)->RRcova
+      RRphylo(tree,cova,clus=clus)->RRcova
       c(RRcova$aces,cova)->covari
       names(covari)<-c(rownames(RRcova$aces),names(cova))
       RRphylo(tree,Y,cov=covari,clus=clus)->RR

@@ -99,7 +99,7 @@ random.evolvability.test<-function(tree,data,node.estimation=c("RR","BM"),aces=N
 
   if(round((detectCores() * clus), 0)==0) cl<-makeCluster(1, setup_strategy = "sequential") else cl <- makeCluster(round((detectCores() * clus), 0), setup_strategy = "sequential")
   registerDoParallel(cl)
-  ddpcr::quiet(xx<-evolqg::MeanMatrixStatistics(cv,iterations=iterations,full.results = T,parallel = TRUE))
+  ddpcr::quiet(xx<-evolqg::MeanMatrixStatistics(cv,iterations=iterations,full.results = TRUE,parallel = TRUE))
   xx$mean->means
 
   pb = txtProgressBar(min = 0, max = nsim, initial = 0)

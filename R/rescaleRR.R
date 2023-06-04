@@ -46,7 +46,7 @@
 #' phytools::fastBM(tree)->y
 #' max(diag(vcv(tree)))->H
 #'
-#' RRphylo::RRphylo(tree,y)->RR
+#' RRphylo(tree,y,clus=0)->RR
 #' rescaleRR(tree,RR=RR)->treeRR
 #'
 #' rescaleRR(tree,height=H/3)->tree_height

@@ -61,8 +61,9 @@
 #'   DataSimians$pca->pca
 #'   DataSimians$tree->tree
 #'   dato<-pca$PCscores
+#'   cc<- 2/parallel::detectCores()
 #'
-#'   RRphylo(tree,dato)->RR
+#'   RRphylo(tree,dato,clus=cc)->RR
 #'
 #'   Rmap<-rate.map(x=c("Pan_troglodytes","Gorilla_gorilla"),RR=RR, PCscores=dato,
 #'                  pcs=pca$PCs, mshape=pca$mshape, shape.diff = TRUE)

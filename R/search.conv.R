@@ -4,7 +4,7 @@
 #'   states.
 #' @usage search.conv(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
 #'   min.dim=NULL,max.dim=NULL,min.dist=NULL,declust=FALSE,nsim=1000,rsim=1000,
-#'   clus=.5,filename=NULL)
+#'   clus=0.5,filename=NULL)
 #' @param RR an object produced by \code{\link{RRphylo}}. This is not indicated
 #'   if convergence among states is tested.
 #' @param tree a phylogenetic tree. The tree needs not to be ultrametric or
@@ -127,7 +127,7 @@
 
 search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
                       min.dim=NULL,max.dim=NULL,min.dist=NULL,
-                      declust=FALSE,nsim=1000,rsim=1000,clus=.5,filename=NULL)
+                      declust=FALSE,nsim=1000,rsim=1000,clus=0.5,filename=NULL)
 {
   # require(ape)
   # require(phytools)
@@ -273,10 +273,10 @@ search.conv<-function(RR=NULL,tree=NULL,y,nodes=NULL,state=NULL,aceV=NULL,
           mean.sel[-which(mean.sel==sel1)]->mean.sel
 
           if(dist.type=="time") {
-            distNodes(tree1,sel1)[1:Nnode(tree1),]->distN
+            distNodes(tree1,sel1,clus=cl)[1:Nnode(tree1),]->distN
             distN[,2]->matDist
             distN[,1]->matN
-          }else distNodes(tree1,sel1)[1:Nnode(tree1),1]->matDist
+          }else distNodes(tree1,sel1,clus=cl)[1:Nnode(tree1),1]->matDist
 
           matDist->matNod
           if (any(mean.sel %in% names(matDist[which(matDist<min.dist)])))
