@@ -122,7 +122,25 @@
 #'     }
 
 plotConv<-function(SC,y,variable,RR=NULL,state=NULL,aceV=NULL){
-
+  if (!requireNamespace("scales", quietly = TRUE)) {
+    stop("Package \"scales\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+  
+  if (!requireNamespace("cluster", quietly = TRUE)) {
+    stop("Package \"cluster\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+  
+  if (!requireNamespace("plotrix", quietly = TRUE)) {
+    stop("Package \"plotrix\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+  
+  if (!requireNamespace("RColorBrewer", quietly = TRUE)) {
+    stop("Package \"RColorBrewer\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
   variable->i
   if(!is.null(SC$`average distance from group centroids`)){
     if(is.null(RR)) stop("Please provide the RR object used to perform search.conv")

@@ -88,24 +88,34 @@
 #'     }
 
 plotShift<-function(RR,SS,state=NULL){
+  
+  if (!requireNamespace("scales", quietly = TRUE)) {
+    stop("Package \"scales\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+  if (!requireNamespace("RColorBrewer", quietly = TRUE)) {
+    stop("Package \"RColorBrewer\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+  
   RR$tree->tree
   if(is.null(SS$single.clades)&is.null(SS$state.results)){
     stop("No significant result available")
   }
-
+  
   if(!is.null(SS$single.clades)){
     SS$single.clades->single
     plotClades<-function(tree.args=NULL,symbols.args=NULL){
-
+      
       if(Ntip(tree)>100){
         if(all(!c("show.tip.label","cex")%in%names(tree.args))) tree.args$show.tip.label<-FALSE
       }
-
+      
       if(isTRUE(tree.args$no.margin)){
         mars <- par("mar")
         on.exit(par(mar = mars))
       }
-
+      
       if(any(c("pos","neg")%in%names(symbols.args$fg))|is.null(symbols.args$fg)){
         symbols.args$fg[which(names(symbols.args$fg)=="pos")]->colpos
         symbols.args$fg[which(names(symbols.args$fg)=="neg")]->colneg
@@ -115,7 +125,7 @@ plotShift<-function(RR,SS,state=NULL){
         symbols.args$fg<-coltot
       }
       if(!"inches"%in%names(symbols.args)) symbols.args$inches<-0.25
-
+      
       if(any(c("pos","neg")%in%names(symbols.args$bg))|is.null(symbols.args$bg)){
         symbols.args$bg[which(names(symbols.args$bg)=="pos")]->colpos1
         symbols.args$bg[which(names(symbols.args$bg)=="neg")]->colneg1
@@ -124,40 +134,40 @@ plotShift<-function(RR,SS,state=NULL){
         if(!is.null(colpos1)) coltot1[which(single[,2]>=0.975)]<-colpos1 else coltot1[which(single[,2]>=0.975)]<-scales::alpha("royalblue", 0.5)
         symbols.args$bg<-coltot1
       }
-
+      
       if(!"bg"%in%names(symbols.args)) symbols.args$bg<-scales::alpha(symbols.args$fg, 0.5)
       if(any(c("squares","rectangles","stars","thermometers","boxplots")%in%names(symbols.args)))
         warning("The shape of the symbol cannot be modified",.immediate=TRUE)
       symbols.args<-symbols.args[which(!names(symbols.args)%in%c("squares","rectangles","stars","thermometers","boxplots"))]
-
+      
       do.call(plot.phylo,c(x=list(tree),tree.args))
       xx<-sapply(rownames(single),function(w) get("last_plot.phylo",envir =ape::.PlotPhyloEnv)[[22]][as.numeric(w)])
       yy<-sapply(rownames(single),function(w) get("last_plot.phylo",envir =ape::.PlotPhyloEnv)[[23]][as.numeric(w)])
       do.call(symbols,c(list(x=xx,y=yy,add=TRUE,circles=abs(single[,1])^0.5),symbols.args))
     }
-
+    
     return(list(plotClades=plotClades))
   }
-
+  
   if(!is.null(SS$state.results)){
     if(is.null(state)) stop("Please provide the vector of species states")
-
+    
     SS$state.results->stateres
     stateres[which(rownames(stateres)%in%unique(state)),]->stateres
     stateres[which(stateres[,2]<=0.025|stateres[,2]>=0.975),]->statesign
     state <- treedataMatch(tree, state)[[1]][,1]
-
+    
     plotStates<-function(tree.args=NULL,points.args=NULL,legend.args=list()){
       if(Ntip(tree)>100){
         if(all(!c("show.tip.label","cex")%in%names(tree.args))) tree.args$show.tip.label<-FALSE
         if(!"type"%in%names(tree.args)) tree.args$type<-"fan"
       }
-
+      
       if(isTRUE(tree.args$no.margin)){
         mars <- par("mar")
         on.exit(par(mar = mars))
       }
-
+      
       if(!"pch"%in%names(points.args)) {
         points.args$pch<-16
       }else{
@@ -171,7 +181,7 @@ plotShift<-function(RR,SS,state=NULL){
       pch.type<-points.args$pch
       pch.type[which(points.args$pch>=20)]<-"bg"
       pch.type[which(points.args$pch<20)]<-"col"
-
+      
       if(!"col"%in%names(points.args)){
         points.args$col<-suppressWarnings(RColorBrewer::brewer.pal(nrow(stateres), "Set2")[as.numeric(as.factor(state))])
       }else{
@@ -181,7 +191,7 @@ plotShift<-function(RR,SS,state=NULL){
           points.args$col<-colo
         }
       }
-
+      
       if(!"bg"%in%names(points.args)){
         points.args$bg<-suppressWarnings(RColorBrewer::brewer.pal(nrow(stateres), "Set2")[as.numeric(as.factor(state))])
       }else{
@@ -191,17 +201,17 @@ plotShift<-function(RR,SS,state=NULL){
           points.args$bg<-colo
         }
       }
-
+      
       if(any(pch.type=="bg")) points.args$col[which(pch.type=="bg")]<-"black"
       if(any(pch.type=="col")) points.args$bg[which(pch.type=="col")]<-"white"
-
+      
       # leg.col<-sapply(1:length(pch.type),function(j) points.args[[grep(pch.type[j],names(points.args))]][j])
-
+      
       do.call(plot.phylo,c(x=list(tree),tree.args))
       xx<-get("last_plot.phylo",envir =ape::.PlotPhyloEnv)[[22]][1:Ntip(tree)]
       yy<-get("last_plot.phylo",envir =ape::.PlotPhyloEnv)[[23]][1:Ntip(tree)]
       do.call(points,c(list(x=xx,y=yy),points.args))
-
+      
       if(!is.null(legend.args)){
         if(!"x"%in%names(legend.args)) legend.args$x<-"topleft"
         if(!"legend"%in%names(legend.args))
@@ -223,14 +233,14 @@ plotShift<-function(RR,SS,state=NULL){
           }
           if(!"pt.cex"%in%names(legend.args)) legend.args$pt.cex<-1.5
         }
-
+        
         if(!"bty"%in%names(legend.args)) legend.args$bty<-"n"
         do.call(legend,legend.args)
       }
     }
     return(list(plotStates=plotStates))
   }
-
+  
 }
 
 #'@export
@@ -238,7 +248,7 @@ addShift<-function(SS,symbols.args=NULL){
   if(is.null(SS$single.clades)&is.null(SS$state.results)){
     stop("No significant result available")
   }
-
+  
   SS$single.clades->single
   if(any(c("pos","neg")%in%names(symbols.args$fg))|is.null(symbols.args$fg)){
     symbols.args$fg[which(names(symbols.args$fg)=="pos")]->colpos
@@ -249,7 +259,7 @@ addShift<-function(SS,symbols.args=NULL){
     symbols.args$fg<-coltot
   }
   if(!"inches"%in%names(symbols.args)) symbols.args$inches<-0.25
-
+  
   if(any(c("pos","neg")%in%names(symbols.args$bg))|is.null(symbols.args$bg)){
     symbols.args$bg[which(names(symbols.args$bg)=="pos")]->colpos1
     symbols.args$bg[which(names(symbols.args$bg)=="neg")]->colneg1
@@ -258,12 +268,12 @@ addShift<-function(SS,symbols.args=NULL){
     if(!is.null(colpos1)) coltot1[which(single[,2]>=0.975)]<-colpos1 else coltot1[which(single[,2]>=0.975)]<-scales::alpha("royalblue", 0.5)
     symbols.args$bg<-coltot1
   }
-
+  
   if(!"bg"%in%names(symbols.args)) symbols.args$bg<-scales::alpha(symbols.args$fg, 0.5)
   if(any(c("squares","rectangles","stars","thermometers","boxplots")%in%names(symbols.args)))
     warning("The shape of the symbol cannot be modified",.immediate=TRUE)
   symbols.args<-symbols.args[which(!names(symbols.args)%in%c("squares","rectangles","stars","thermometers","boxplots"))]
-
+  
   xx<-sapply(rownames(single),function(w) get("last_plot.phylo",envir =ape::.PlotPhyloEnv)[[22]][as.numeric(w)])
   yy<-sapply(rownames(single),function(w) get("last_plot.phylo",envir =ape::.PlotPhyloEnv)[[23]][as.numeric(w)])
   do.call(symbols,c(list(x=xx,y=yy,add=TRUE,circles=abs(single[,1])^0.5),symbols.args))

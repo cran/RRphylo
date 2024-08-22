@@ -95,6 +95,16 @@
 #'    }
 
 plotTrend<-function(ST){
+  if (!requireNamespace("car", quietly = TRUE)) {
+    stop("Package \"car\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+  
+  if (!requireNamespace("RColorBrewer", quietly = TRUE)) {
+    stop("Package \"RColorBrewer\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+  
   ST$trend.data$phenotypeVStime->phen.plot
   ST$trend.data$absrateVStime->absrate.plot
   ST$trend.data$rescaledrateVStime->resrate.plot
