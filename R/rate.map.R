@@ -75,7 +75,7 @@
 rate.map<-function (x, RR, PCscores, pcs, mshape,
                     out.rem = TRUE, shape.diff=FALSE, show.names=TRUE) {
 
-  .Deprecated("rate.map","RRmorph","A new updated version of rate.map is available through the new R package RRmorph also accessible at:
+  .Deprecated("rate.map","RRmorph","A new updated version of rate.map is available through the new R package RRmorph accessible on CRAN and at:
           https://github.com/pasraia/RRmorph")
 
   misspacks<-sapply(c("inflection","ddpcr","rgl","Rvcg","Morpho"),requireNamespace,quietly=TRUE)

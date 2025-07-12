@@ -109,7 +109,7 @@ conv.map<-function(dataset,pcs,mshape,
   # require(Rvcg)
   # require(Morpho)
 
-  .Deprecated("conv.map","RRmorph","A new updated version of conv.map is available through the new R package RRmorph also accessible at:
+  .Deprecated("conv.map","RRmorph","A new updated version of conv.map is available through the new R package RRmorph accessible on CRAN and at:
           https://github.com/pasraia/RRmorph")
 
   misspacks<-sapply(c("inflection","ddpcr","rgl","Rvcg","Morpho"),requireNamespace,quietly=TRUE)
