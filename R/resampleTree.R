@@ -1,8 +1,9 @@
 #' @title Altering phylogenetic trees
 #' @description The function alters the topology and randomly removes a
 #'   user-specified proportion of species from a phylogenetic tree.
-#' @usage resampleTree(tree,s=0.25,sdata=NULL,nodes=NULL,categories=NULL,
-#'              swap.si=0.1,swap.si2=0.1,swap.node=NULL,nsim=1)
+#' @usage
+#'   resampleTree(tree,s=0.25,sdata=NULL,nodes=NULL,minsp.node=5,categories=NULL,
+#'   minsp.cat=5,swap.si=0.1,swap.si2=0.1,swap.node=NULL,nsim=1)
 #' @param tree	a phylogenetic tree. The tree needs not to be ultrametric or
 #'   fully dichotomous.
 #' @param s the percentage of tips to be cut off. It is set at 25\% by default.
@@ -12,20 +13,25 @@
 #'   contain the strata. Otherwise, the user can provide a sampling probability
 #'   (meant as the probability to be removed from the tree) for each species.
 #' @param nodes the clades to be preserved. In this case the function maintains
-#'   no less than 5 species at least in each of them.
+#'   no less than \code{minsp.node} species at least in each of them.
+#' @param minsp.node the minimum number of species to retain for specified
+#'   \code{nodes}. Default is 5.
 #' @param categories the categories to be preserved. In this case the function
-#'   maintains no less than 5 species at least in each of them.
+#'   maintains no less than \code{minsp.cat} species at least in each of them.
+#' @param minsp.cat the minimum number of species to retain for specified
+#'   \code{categories}. Default is 5.
 #' @param nsim number of phylogenies to return. It is set at 1 by default.
 #' @param swap.si,swap.si2,swap.node arguments \code{si, si2, node} as passed to
 #'   \code{\link{swapONE}}. The default for both \code{si} and \code{si2} is
 #'   0.1.
-#' @return The function returns \code{phylo} or \code{multiPhylo} object.
-#' The output always has an attribute "Call" which returns an unevaluated call to the function.
+#' @return The function returns \code{phylo} or \code{multiPhylo} object. The
+#'   output always has an attribute "Call" which returns an unevaluated call to
+#'   the function.
 #' @author Silvia Castiglione, Giorgia Girardi
 #' @export
 #' @seealso \href{../doc/search.conv.html}{\code{search.conv} vignette};
-#' \href{../doc/overfitRR.html}{\code{overfitRR} vignette};
-#' \href{../doc/Alternative-trees.html}{\code{Alternative-trees} vignette}
+#'   \href{../doc/overfit.html}{\code{overfitRR} vignette};
+#'   \href{../doc/Alternative-trees.html}{\code{Alternative-trees} vignette}
 #' @examples
 #' \dontrun{
 #' DataCetaceans$treecet->treecet
@@ -66,9 +72,8 @@
 #' }
 
 
-
-
-resampleTree<-function(tree,s=0.25,sdata=NULL,nodes=NULL,categories=NULL,
+resampleTree<-function(tree,s=0.25,sdata=NULL,nodes=NULL,minsp.node=5,
+                       categories=NULL,minsp.cat=5,
                        swap.si=0.1,swap.si2=0.1,swap.node=NULL,nsim=1){
   # require(ape)
 
@@ -89,29 +94,12 @@ resampleTree<-function(tree,s=0.25,sdata=NULL,nodes=NULL,categories=NULL,
         ifelse(is.numeric(sdata[,2]),"probs","group")->colnames(sdata)[2]
       }
     }
-    # if(is.null(ncol(sdata))) sdata<-data.frame(species=names(sdata),group=sdata,probs=NA) else{
-    #   if(ncol(sdata)==2) sdata<-data.frame(sdata,probs=NA)
-    # }
-    # if(!all(colnames(sdata)%in%c("species","group","probs"))) {
-    #   warning("Colnames not matching: columns assumed to be ordered as 'species','group','probs\n'",immediate. = TRUE)
-    #   colnames(sdata)[1:2]<-c("species","group")
-    #   if(ncol(sdata)==3) colnames(sdata)[3]<-"probs"
-    # }
     if(any(duplicated(sdata$species))) stop("Species",paste(sdata$species[duplicated(sdata$species)],sep=" "),"in sdata are duplicated")
     if(!all(tree$tip.label%in%sdata$species)){
       if(!is.null(sdata$probs))
         stop("Please provide sampling probabilities for all the species on the tree")
       sdata<-rbind(sdata,data.frame(species=tree$tip.label[which(!tree$tip.label%in%sdata$species)],group="others"))
     }
-
-    # if(all(is.na(sdata$probs))){
-      # table(sdata$group)/Ntip(tree)->grprob
-      # # if(any(sdata$group=="others")) grprob["others"]<-0.5
-      # sdata$probs<-1-grprob[match(sdata$group,names(grprob))]
-      # if(any(grprob<=0.05)){
-      #   sapply(names(grprob)[which(grprob<=0.05)],function(j) sdata$probs[which(sdata$group%in%j)][sample(1:sum(sdata$group%in%j),2)]<<-0)
-      # }
-    # }
   }else data.frame(species=tree$tip.label,probs=1)->sdata
   tree$node.label<-(Ntip(tree)+1:Nnode(tree))
 
@@ -120,23 +108,11 @@ resampleTree<-function(tree,s=0.25,sdata=NULL,nodes=NULL,categories=NULL,
     if(!is.null(nodes)){
       unlist(lapply(nodes,function(x){
         length(tips(tree,x))->lenx
-        if(lenx<=5) tips(tree,x) else sample(tips(tree,x),5)
+        if(lenx<=minsp.node) tips(tree,x) else sample(tips(tree,x),minsp.node)
       }))->out.nodes
     } else out.nodes<-NULL
 
     if(!is.null(categories)){
-      # if(is.list(categories)) do.call(cbind,categories)->categories
-      # categories<-as.matrix(categories)
-      # categories <- treedataMatch(tree, categories)[[1]]
-      #
-      # out.cat<-unlist(lapply(1:ncol(categories),function(w){
-      #   table(categories[,w])->tab.ss
-      #   unlist(lapply(1:length(tab.ss),function(x){
-      #     if(tab.ss[x]<=5) names(which(categories[,w]==names(tab.ss)[x])) else
-      #       sample(names(which(categories[,w]==names(tab.ss)[x])),5)
-      #   }))
-      # }))
-
       if(!is.list(categories)){
         categories<-as.matrix(categories)
         asplit(categories,2)->categories
@@ -146,8 +122,8 @@ resampleTree<-function(tree,s=0.25,sdata=NULL,nodes=NULL,categories=NULL,
       out.cat<-unlist(lapply(categories,function(w){
         table(w)->tab.ss
         unlist(lapply(1:length(tab.ss),function(x){
-          if(tab.ss[x]<=5) rownames(w)[which(w==names(tab.ss)[x])] else
-            sample(rownames(w)[which(w==names(tab.ss)[x])],5)
+          if(tab.ss[x]<=minsp.cat) rownames(w)[which(w==names(tab.ss)[x])] else
+            sample(rownames(w)[which(w==names(tab.ss)[x])],minsp.cat)
         }))
       }))
     } else out.cat<-NULL

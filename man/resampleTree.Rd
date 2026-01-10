@@ -4,8 +4,8 @@
 \alias{resampleTree}
 \title{Altering phylogenetic trees}
 \usage{
-resampleTree(tree,s=0.25,sdata=NULL,nodes=NULL,categories=NULL,
-             swap.si=0.1,swap.si2=0.1,swap.node=NULL,nsim=1)
+resampleTree(tree,s=0.25,sdata=NULL,nodes=NULL,minsp.node=5,categories=NULL,
+  minsp.cat=5,swap.si=0.1,swap.si2=0.1,swap.node=NULL,nsim=1)
 }
 \arguments{
 \item{tree}{a phylogenetic tree. The tree needs not to be ultrametric or
@@ -20,10 +20,16 @@ contain the strata. Otherwise, the user can provide a sampling probability
 (meant as the probability to be removed from the tree) for each species.}
 
 \item{nodes}{the clades to be preserved. In this case the function maintains
-no less than 5 species at least in each of them.}
+no less than \code{minsp.node} species at least in each of them.}
+
+\item{minsp.node}{the minimum number of species to retain for specified
+\code{nodes}. Default is 5.}
 
 \item{categories}{the categories to be preserved. In this case the function
-maintains no less than 5 species at least in each of them.}
+maintains no less than \code{minsp.cat} species at least in each of them.}
+
+\item{minsp.cat}{the minimum number of species to retain for specified
+\code{categories}. Default is 5.}
 
 \item{swap.si, swap.si2, swap.node}{arguments \code{si, si2, node} as passed to
 \code{\link{swapONE}}. The default for both \code{si} and \code{si2} is
@@ -32,8 +38,9 @@ maintains no less than 5 species at least in each of them.}
 \item{nsim}{number of phylogenies to return. It is set at 1 by default.}
 }
 \value{
-The function returns \code{phylo} or \code{multiPhylo} object.
-The output always has an attribute "Call" which returns an unevaluated call to the function.
+The function returns \code{phylo} or \code{multiPhylo} object. The
+  output always has an attribute "Call" which returns an unevaluated call to
+  the function.
 }
 \description{
 The function alters the topology and randomly removes a
@@ -80,8 +87,8 @@ resampleTree(treecet,sdata = prdata,s=0.25,nsim=5)->treecet5
 }
 \seealso{
 \href{../doc/search.conv.html}{\code{search.conv} vignette};
-\href{../doc/overfitRR.html}{\code{overfitRR} vignette};
-\href{../doc/Alternative-trees.html}{\code{Alternative-trees} vignette}
+  \href{../doc/overfit.html}{\code{overfitRR} vignette};
+  \href{../doc/Alternative-trees.html}{\code{Alternative-trees} vignette}
 }
 \author{
 Silvia Castiglione, Giorgia Girardi

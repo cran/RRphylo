@@ -1,8 +1,8 @@
 Package: RRphylo
 Type: Package
 Title: Phylogenetic Ridge Regression Methods for Comparative Studies
-Date: 2025-07-11
-Version: 3.0.1
+Date: 2026-01-09
+Version: 3.0.2
 Authors@R: c(person(given = "Pasquale",
                     family = "Raia",
                     role = "aut"),
@@ -44,9 +44,9 @@ Suggests: phangorn, rlist, scales, R.utils, cluster, RColorBrewer,
         qpdf, inflection, Rvcg, Morpho, evolqg, manipulate, markdown,
         Rphylopars, phylolm, webshot2, testthat (>= 3.0.0)
 VignetteBuilder: knitr
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 NeedsCompilation: no
-Packaged: 2025-07-11 15:11:04 UTC; Silvia
+Packaged: 2026-01-09 11:51:24 UTC; Silvia
 Author: Pasquale Raia [aut],
   Silvia Castiglione [aut, cre],
   Carmela Serio [aut],
@@ -57,4 +57,4 @@ Author: Pasquale Raia [aut],
   Antonio Profico [aut],
   Francesco Carotenuto [aut]
 Repository: CRAN
-Date/Publication: 2025-07-12 09:30:02 UTC
+Date/Publication: 2026-01-10 07:52:16 UTC

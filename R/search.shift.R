@@ -186,13 +186,15 @@ search.shift<-function(RR,
     # data.frame(rate.difference=l2N.init[match(names(p.init),names(l2N.init))],p.value=p.init)->allres
 
     if(is.null(node)){
-      if (length(p.init[p.init>=0.975|p.init<=0.025])==0) p.single <-leaf2N.diff <-NULL else{
+      if (!any(p.init>=0.975|p.init<=0.025)) p.single <-leaf2N.diff <-NULL else{
+      #if (length(p.init[p.init>=0.975|p.init<=0.025])==0) p.single <-leaf2N.diff <-NULL else{
         p.single <- p.init[p.init>=0.975|p.init<=0.025]
         leaf2N.diff <- l2N.init[match(names(p.single),names(l2N.init))]
       }
       if (length(p.single)>= 2){
         ups <- p.single[p.single >= 0.975]
         dws <- p.single[p.single <= 0.025]
+
         ups.sel<-sapply(node.paths(tree,names(ups)),function(x){
           x[which.max(abs(leaf2N.diff[match(x,names(leaf2N.diff))]))]
         })
